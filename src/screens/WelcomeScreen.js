@@ -3,15 +3,17 @@ import { ImageBackground, Text, View, StyleSheet, StatusBar, Image } from 'react
 import { Context as DriverContext } from '../context/DriverContext';
 
 
-const WelcomeScreen = () => {
+const WelcomeScreen = ({ navigation }) => {
 
     const { state: { user } } = useContext(DriverContext);
 
     useEffect(() => {
 
-        console.log(user);
+        setTimeout(() => {
+            navigation.navigate('DriverInfo');
+        }, 3000)
 
-    }, [user])
+    }, [])
 
     return (
         <ImageBackground source={require('../../assets/welcome-background.png')}

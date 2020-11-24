@@ -7,13 +7,15 @@ import { Provider as DriverProvider } from './src/context/DriverContext';
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import { setNavigator } from './src/navigationRef';
 import PreAuthScreen from './src/screens/PreAuthScreen';
+import DriverInfoScreen from './src/screens/DriverInfoScreen';
 
 
 
 const navigator = createSwitchNavigator({
   PreAuth: PreAuthScreen,
   Signin: SigninScreen,
-  Welcome: WelcomeScreen
+  Welcome: WelcomeScreen,
+  DriverInfo: DriverInfoScreen
 })
 
 

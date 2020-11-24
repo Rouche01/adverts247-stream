@@ -11,7 +11,7 @@ const driverReducer = (state, action) => {
         case 'signin':
             return { ...state, token: action.payload };
         case 'get_user':
-            return { ...state, user: action.payload };
+            return { ...state, user: action.payload.user };
         case 'set_errors':
             return { ...state, error: action.payload }
         default:
