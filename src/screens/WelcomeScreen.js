@@ -1,19 +1,29 @@
 import React, { useContext, useEffect } from 'react';
 import { ImageBackground, Text, View, StyleSheet, StatusBar, Image } from 'react-native';
 import { Context as DriverContext } from '../context/DriverContext';
+import useLocation from '../hooks/useLocation';
+import useDate from '../hooks/useDate';
 
 
 const WelcomeScreen = ({ navigation }) => {
 
     const { state: { user } } = useContext(DriverContext);
+    const [ location, errorMsg, weatherData ] = useLocation();
+    const [ dateString ] = useDate();
+
 
     useEffect(() => {
 
-        setTimeout(() => {
-            navigation.navigate('DriverInfo');
-        }, 3000)
+        if(user && location) {
+            console.log(location);
+            setTimeout(() => {
+                navigation.navigate('DriverInfo', { user, location, dateString });
+            }, 3000)
+        }
 
-    }, [])
+    }, [user, location])
+
+    console.log(weatherData);
 
     return (
         <ImageBackground source={require('../../assets/welcome-background.png')}
@@ -26,6 +36,11 @@ const WelcomeScreen = ({ navigation }) => {
             <Text style={styles.headingStyle}>WELCOME ONBOARD!</Text>
         </ImageBackground>
     )
+}
+
+
+WelcomeScreen.navigationOptions = {
+    headerShown: false
 }
 
 

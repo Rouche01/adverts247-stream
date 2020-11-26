@@ -1,8 +1,7 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Image, ImageBackground, Text, StatusBar, Dimensions } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
-import { Context as DriverContext } from '../context/DriverContext';
-import Animated, { interpolate } from 'react-native-reanimated';
+import Animated, { interpolate, set } from 'react-native-reanimated';
 import { useTimingTransition } from 'react-native-redash/lib/module/v1';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
@@ -10,16 +9,17 @@ const HALF_WIDTH = DEVICE_WIDTH / 2;
 const DEVICE_HEIGHT = Dimensions.get('window').height;
 
 
-const DriverInfoScreen = () => {
-
-    const { state: { user } } = useContext(DriverContext);
+const DriverInfoScreen = ({ navigation }) => {
 
     const [ driverFirstName, setDriverFirstName ] = useState('');
     const [ driverImage, setDriverImage ] = useState('');
+    const [ city, setCity] = useState('');
+    const [ area, setArea ] = useState('');
+    const [ date, setDate ] = useState('');
 
-    const [ moreInfo, setMoreInfo ] = useState(false);
+    const [ animationSequence, setAnimationSequence ] = useState(0);
 
-    const transition = useTimingTransition(moreInfo, { duration: 600 });
+    const transition = useTimingTransition(animationSequence, { duration: 600 });
     // const transition2 = useTimingTransition(moreInfo, { duration: 850 })
 
     const driverInfo = [
@@ -29,23 +29,33 @@ const DriverInfoScreen = () => {
         { infoKey: 'Vacation Spot', infoValue: 'Paris, France' }
     ]
 
+
     useEffect(() => {
 
+        // console.log(navigation.state.params.user);
         setTimeout(() => {
-            setMoreInfo(true);
-        }, 5000)
+            setAnimationSequence(1);
+        }, 4500);
+
+        // setTimeout(() => {
+        //     setAnimationSequence(2);
+        // }, 9000);
 
     }, []);
 
+
     useEffect(() => {
 
-        if(user) {
-            const firstName = user.name.split(' ')[0];
-            setDriverFirstName(firstName);
-            setDriverImage(user.profilePhoto);
-        }
+        const { name, profilePhoto } = navigation.state.params.user;
+        const { region, street } = navigation.state.params.location;
+        const firstName = name.split(' ')[0];
+        setDriverFirstName(firstName);
+        setDriverImage(profilePhoto);
+        setCity(region);
+        setArea(street);
+        setDate(navigation.state.params.dateString);
 
-    }, [user])
+    }, [])
 
     if(!driverImage) {
         return (
@@ -58,23 +68,28 @@ const DriverInfoScreen = () => {
     }
 
     const translateX = interpolate(transition, {
-        inputRange: [0, 1],
-        outputRange: [0, ((DEVICE_WIDTH / 4)) * -1]
+        inputRange: [0, 1, 2],
+        outputRange: [0, ((DEVICE_WIDTH / 4)) * -1, 0]
     });
 
     const translateY = interpolate(transition, {
-        inputRange: [0, 1],
-        outputRange: [0, -40]
+        inputRange: [0, 1, 2],
+        outputRange: [0, -40, 0]
     });
 
     const right = interpolate(transition, {
-        inputRange: [0, 1],
-        outputRange: [HALF_WIDTH * -1, 0]
+        inputRange: [0, 1, 2],
+        outputRange: [HALF_WIDTH * -1, 0, HALF_WIDTH * -1]
+    });
+
+    const translateLogo = interpolate(transition, {
+        inputRange: [0, 1, 2],
+        outputRange: [50, (HALF_WIDTH / 2) - 80, 50]
     })
 
     const opacity = interpolate(transition, {
-        inputRange: [0, 1],
-        outputRange: [0, 1]
+        inputRange: [0, 1, 2],
+        outputRange: [0, 1, 0]
     })
 
     return (
@@ -102,45 +117,86 @@ const DriverInfoScreen = () => {
                     style={styles.driverImage}
                 />
             </Animated.View>
-            <Image 
+            <Animated.Image 
                 source={require('../../assets/logoAlt.png')}
-                style={styles.logoStyle}
+                style={[styles.logoStyle, {
+                    left: translateLogo
+                }]}
                 resizeMode="contain"
             />
             <Animated.View
                 style={[styles.aboutDriver, {
-                    right
+                    right,
+                    opacity
                 }]}
             >
-                <Animated.Text style={[styles.aboutHeader, {
-                    opacity
+                {/* <Animated.View>
+                    <Animated.Text style={[styles.aboutHeader, {
+                        opacity
+                    }]}>
+                        About Me
+                    </Animated.Text>
+                    <View style={styles.aboutBody}>
+                        {
+                            driverInfo.map((info) => {
+                                return (
+                                    <Animated.View style={[styles.aboutInfo, {
+                                        opacity
+                                    }]} 
+                                        key={info.infoKey}
+                                    >
+                                        <View style={styles.iconWrapper}>
+                                            <FontAwesome5 name="fire-alt" size={24} color="#fff" />
+                                        </View>
+                                        <View style={styles.infoText}>
+                                            <Text style={styles.infoKey}>{info.infoKey}</Text>
+                                            <Text style={styles.infoValue}>{info.infoValue}</Text>
+                                        </View>
+                                    </Animated.View>
+                                )
+                            })
+                        }
+                    </View>
+                </Animated.View> */}
+                <Animated.View style={[styles.weatherView, {
+
                 }]}>
-                    About Me
-                </Animated.Text>
-                <View style={styles.aboutBody}>
-                    {
-                        driverInfo.map((info) => {
-                            return (
-                                <Animated.View style={[styles.aboutInfo, {
-                                    opacity
-                                }]} 
-                                    key={info.infoKey}
-                                >
-                                    <View style={styles.iconWrapper}>
-                                        <FontAwesome5 name="fire-alt" size={24} color="#fff" />
-                                    </View>
-                                    <View style={styles.infoText}>
-                                        <Text style={styles.infoKey}>{info.infoKey}</Text>
-                                        <Text style={styles.infoValue}>{info.infoValue}</Text>
-                                    </View>
-                                </Animated.View>
-                            )
-                        })
-                    }
-                </View>
+                    <Text style={styles.city}>{city},</Text>
+                    <Text style={styles.area}>{area}</Text>
+                    <Text style={styles.dateTime}>{date}</Text>
+                    <View style={styles.weatherDisplay}>
+                        <FontAwesome5 name="cloud-rain" size={48} color="white" />
+                        <Text style={styles.temperature}>28℃</Text>
+                    </View>
+                    <View style={styles.weatherUpdate}>
+                        <View style={styles.weatherBox}>
+                            <Text style={styles.title}>HIGH/LOW</Text>
+                            <Text style={styles.value}>28°/30°</Text>
+                        </View>
+                        <View style={styles.weatherBox}>
+                            <Text style={styles.title}>WIND</Text>
+                            <Text style={styles.value}>5 MPH</Text>
+                        </View>
+                    </View>
+                    <View style={styles.weatherUpdate}>
+                        <View style={styles.weatherBox}>
+                            <Text style={styles.title}>RAIN CHANCE</Text>
+                            <Text style={styles.value}>72%</Text>
+                        </View>
+                        <View style={styles.weatherBox}>
+                            <Text style={styles.title}>HUMIDITY</Text>
+                            <Text style={styles.value}>65%</Text>
+                        </View>
+                    </View>
+                </Animated.View>
             </Animated.View>
         </ImageBackground>
     )
+}
+
+
+DriverInfoScreen.navigationOptions = {
+    headerShown: false
 }
 
 
@@ -175,7 +231,8 @@ const styles = StyleSheet.create({
         height: 45,
         position: 'absolute',
         bottom: 40,
-        left: 50
+        // borderColor: '#fff',
+        // borderWidth: 2
     },
     aboutDriver: {
         height: '100%',
@@ -183,7 +240,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#F1040E',
         position:'absolute',
         top: 0,
-        right: -1 * HALF_WIDTH,
         paddingHorizontal: 20,
         paddingVertical: 20
     },
@@ -212,8 +268,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         shadowColor: '#000',
         shadowOpacity: 0.9,
-        shadowOffset: { width: 24, height: 14 },
-        shadowRadius: 5
+        shadowOffset: { width: 2, height: 4 },
+        shadowRadius: 5,
+        elevation: 13
     },
     infoText: {
         marginLeft: 20,
@@ -231,6 +288,58 @@ const styles = StyleSheet.create({
         fontSize: 21,
         fontWeight: 'bold',
         marginLeft: 14
+    },
+    weatherView: {
+        paddingLeft: 15
+    },
+    city: {
+        color: '#fff',
+        fontSize: 20
+    },
+    area: {
+        color: '#fff',
+        fontSize: 28,
+        fontWeight: 'bold'
+    },
+    dateTime: {
+        color: '#fff',
+        fontSize: 16,
+        marginTop: 8
+    },
+    weatherDisplay: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 15,
+        marginBottom: 20
+    },
+    temperature: {
+        fontSize: 36,
+        color: '#fff',
+        fontWeight: 'bold',
+        marginLeft: 25
+    },
+    weatherBox: {
+        height: 80,
+        width: 140,
+        backgroundColor: '#272727',
+        borderRadius: 5,
+        // alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: 15,
+        paddingHorizontal: 20
+    },
+    weatherUpdate: {
+        flexDirection: 'row',
+        marginBottom: 15
+    },
+    title: {
+        color: '#fff',
+        fontSize: 10,
+    },
+    value: {
+        color: '#fff',
+        fontSize: 24,
+        fontWeight: 'bold'
     }
 });
 

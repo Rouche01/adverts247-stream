@@ -14,8 +14,10 @@ import DriverInfoScreen from './src/screens/DriverInfoScreen';
 const navigator = createSwitchNavigator({
   PreAuth: PreAuthScreen,
   Signin: SigninScreen,
-  Welcome: WelcomeScreen,
-  DriverInfo: DriverInfoScreen
+  welcomeFlow: createStackNavigator({
+    Welcome: WelcomeScreen,
+    DriverInfo: DriverInfoScreen
+  })
 })
 
 
