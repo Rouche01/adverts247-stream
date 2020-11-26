@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Image, ImageBackground, Text, StatusBar, Dimensions } from 'react-native';
-import { FontAwesome5 } from '@expo/vector-icons';
+import { FontAwesome5, Ionicons } from '@expo/vector-icons';
 import Animated, { interpolate, set } from 'react-native-reanimated';
 import { useTimingTransition } from 'react-native-redash/lib/module/v1';
+import weatherIconDictionary from '../utils/weatherIconDictionary';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 const HALF_WIDTH = DEVICE_WIDTH / 2;
@@ -16,6 +17,7 @@ const DriverInfoScreen = ({ navigation }) => {
     const [ city, setCity] = useState('');
     const [ area, setArea ] = useState('');
     const [ date, setDate ] = useState('');
+    const [ weatherData, setWeatherData ] = useState(null);
 
     const [ animationSequence, setAnimationSequence ] = useState(0);
 
@@ -46,14 +48,16 @@ const DriverInfoScreen = ({ navigation }) => {
 
     useEffect(() => {
 
-        const { name, profilePhoto } = navigation.state.params.user;
-        const { region, street } = navigation.state.params.location;
+        const { user, location, dateString, weatherData } = navigation.state.params;
+        const { name, profilePhoto } = user;
+        const { region, street } = location;
         const firstName = name.split(' ')[0];
         setDriverFirstName(firstName);
         setDriverImage(profilePhoto);
         setCity(region);
         setArea(street);
-        setDate(navigation.state.params.dateString);
+        setDate(dateString);
+        setWeatherData(weatherData);
 
     }, [])
 
@@ -165,17 +169,24 @@ const DriverInfoScreen = ({ navigation }) => {
                     <Text style={styles.area}>{area}</Text>
                     <Text style={styles.dateTime}>{date}</Text>
                     <View style={styles.weatherDisplay}>
-                        <FontAwesome5 name="cloud-rain" size={48} color="white" />
-                        <Text style={styles.temperature}>28℃</Text>
+                        { weatherIconDictionary[weatherData.icon].iconFamily === 'FontAwesome5' ?
+                            <FontAwesome5 name={weatherIconDictionary[weatherData.icon].icon} 
+                                size={48} color="white" 
+                            /> :
+                            <Ionicons name={weatherIconDictionary[weatherData.icon].icon} 
+                                size={48} color="white" 
+                            />
+                        }
+                        <Text style={styles.temperature}>{weatherData.temp}℃</Text>
                     </View>
                     <View style={styles.weatherUpdate}>
                         <View style={styles.weatherBox}>
                             <Text style={styles.title}>HIGH/LOW</Text>
-                            <Text style={styles.value}>28°/30°</Text>
+                            <Text style={styles.value}>{weatherData.tempMax}°/{weatherData.tempMin}°</Text>
                         </View>
                         <View style={styles.weatherBox}>
                             <Text style={styles.title}>WIND</Text>
-                            <Text style={styles.value}>5 MPH</Text>
+                            <Text style={styles.value}>{weatherData.windSpeed} MPH</Text>
                         </View>
                     </View>
                     <View style={styles.weatherUpdate}>
@@ -185,7 +196,7 @@ const DriverInfoScreen = ({ navigation }) => {
                         </View>
                         <View style={styles.weatherBox}>
                             <Text style={styles.title}>HUMIDITY</Text>
-                            <Text style={styles.value}>65%</Text>
+                            <Text style={styles.value}>{weatherData.humidity}%</Text>
                         </View>
                     </View>
                 </Animated.View>

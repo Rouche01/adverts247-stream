@@ -3,27 +3,28 @@ import { ImageBackground, Text, View, StyleSheet, StatusBar, Image } from 'react
 import { Context as DriverContext } from '../context/DriverContext';
 import useLocation from '../hooks/useLocation';
 import useDate from '../hooks/useDate';
+import useWeatherData from '../hooks/useWeatherData';
 
 
 const WelcomeScreen = ({ navigation }) => {
 
     const { state: { user } } = useContext(DriverContext);
-    const [ location, errorMsg, weatherData ] = useLocation();
+    const [ location, errorMsg, latLongVal ] = useLocation();
     const [ dateString ] = useDate();
+    const [ weatherData ] = useWeatherData(latLongVal);
 
 
     useEffect(() => {
 
-        if(user && location) {
+        if(user && location && weatherData) {
             console.log(location);
             setTimeout(() => {
-                navigation.navigate('DriverInfo', { user, location, dateString });
-            }, 3000)
+                navigation.navigate('DriverInfo', { user, location, dateString, weatherData });
+            }, 1500)
         }
 
-    }, [user, location])
+    }, [user, location, weatherData]);
 
-    console.log(weatherData);
 
     return (
         <ImageBackground source={require('../../assets/welcome-background.png')}
