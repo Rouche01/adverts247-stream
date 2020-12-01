@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Image, ImageBackground, Text, StatusBar, Dimensions } from 'react-native';
 import { FontAwesome5, Ionicons } from '@expo/vector-icons';
-import Animated, { interpolate, set } from 'react-native-reanimated';
-import { useTimingTransition } from 'react-native-redash/lib/module/v1';
+import Animated from 'react-native-reanimated';
+import useAnimation from '../hooks/useAnimation';
 import weatherIconDictionary from '../utils/weatherIconDictionary';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
-const HALF_WIDTH = DEVICE_WIDTH / 2;
 const DEVICE_HEIGHT = Dimensions.get('window').height;
 
 
@@ -18,11 +17,11 @@ const DriverInfoScreen = ({ navigation }) => {
     const [ area, setArea ] = useState('');
     const [ date, setDate ] = useState('');
     const [ weatherData, setWeatherData ] = useState(null);
-
-    const [ animationSequence, setAnimationSequence ] = useState(0);
-
-    const transition = useTimingTransition(animationSequence, { duration: 600 });
-    // const transition2 = useTimingTransition(moreInfo, { duration: 850 })
+    const [ driverInfoLayout, setDriverInfoLayout ] = useState({ width: 0, height: 0 });
+    const [ driverIntroTextLayout, setDriverIntroTextLayout] = useState({ width: 0, height: 0 });
+    const [ driverImgLayout, setDriverImgLayout ] = useState(null);
+    const [ driverFavLayout, setDriverFavLayout ] = useState({ width: 0, height: 0 });
+    const [ infoTextWidth, setInfoTextWidth ] = useState(0);
 
     const driverInfo = [
         { infoKey: 'Favorite Meal', infoValue: 'Jollof Rice' },
@@ -32,18 +31,28 @@ const DriverInfoScreen = ({ navigation }) => {
     ]
 
 
-    useEffect(() => {
-
-        // console.log(navigation.state.params.user);
-        setTimeout(() => {
-            setAnimationSequence(1);
-        }, 4500);
-
-        // setTimeout(() => {
-        //     setAnimationSequence(2);
-        // }, 9000);
-
-    }, []);
+    const [
+        translateX, 
+        translateY,
+        right,
+        translateLogo, 
+        logoOpacity, 
+        opacity, 
+        introTextScale, 
+        introTextPosition, 
+        introTextTop, 
+        introTextLeft, 
+        driverImagePosition, 
+        driverImageTop, 
+        driverImageLeft, 
+        driverImageScale, 
+        driverFavouritesX, 
+        driverFavouritesY, 
+        driverFavouritesScale, 
+        weatherViewOpacity, 
+        weatherViewTranslateY
+    ] = useAnimation(driverInfoLayout, driverIntroTextLayout, driverImgLayout, 
+        driverFavLayout, infoTextWidth, DEVICE_WIDTH, DEVICE_HEIGHT);
 
 
     useEffect(() => {
@@ -61,6 +70,7 @@ const DriverInfoScreen = ({ navigation }) => {
 
     }, [])
 
+
     if(!driverImage) {
         return (
             <ImageBackground
@@ -70,31 +80,6 @@ const DriverInfoScreen = ({ navigation }) => {
             </ImageBackground>
         )
     }
-
-    const translateX = interpolate(transition, {
-        inputRange: [0, 1, 2],
-        outputRange: [0, ((DEVICE_WIDTH / 4)) * -1, 0]
-    });
-
-    const translateY = interpolate(transition, {
-        inputRange: [0, 1, 2],
-        outputRange: [0, -40, 0]
-    });
-
-    const right = interpolate(transition, {
-        inputRange: [0, 1, 2],
-        outputRange: [HALF_WIDTH * -1, 0, HALF_WIDTH * -1]
-    });
-
-    const translateLogo = interpolate(transition, {
-        inputRange: [0, 1, 2],
-        outputRange: [50, (HALF_WIDTH / 2) - 80, 50]
-    })
-
-    const opacity = interpolate(transition, {
-        inputRange: [0, 1, 2],
-        outputRange: [0, 1, 0]
-    })
 
     return (
         <ImageBackground
@@ -107,6 +92,11 @@ const DriverInfoScreen = ({ navigation }) => {
                 translucent={true}
             />
             <Animated.View 
+                onLayout = { (e) => {
+                    const layoutWidth = e.nativeEvent.layout.width;
+                    const layoutHeight = e.nativeEvent.layout.height;
+                    setDriverInfoLayout({ width: layoutWidth, height: layoutHeight });
+                }}
                 style={[styles.innerContainer, {
                     transform: [
                         { translateX },
@@ -114,17 +104,54 @@ const DriverInfoScreen = ({ navigation }) => {
                     ]
                 }]}
             >
-                <Text style={styles.minorText}>You are riding with</Text>
-                <Text style={styles.majorText}>{driverFirstName}</Text>
-                <Image 
+                <Animated.View
+                    style={[styles.introText, {
+                        position: introTextPosition === 1 ? "absolute" : "relative",
+                        top: introTextTop,
+                        left: introTextLeft,
+                    }]}
+                    onLayout={ e => {
+                        const layoutHeight = e.nativeEvent.layout.height;
+                        const layoutWidth = e.nativeEvent.layout.width;
+                        setDriverIntroTextLayout({ width: layoutWidth, height: layoutHeight });
+                    }}
+                >
+                    <Animated.Text style={[styles.minorText, {
+                        transform: [
+                            {scale: introTextScale}
+                        ]
+                    }]}>
+                        You are riding with
+                    </Animated.Text>
+                    <Animated.Text style={[styles.majorText, {
+                        transform: [
+                            {scale: introTextScale}
+                        ]
+                    }]}>
+                        {driverFirstName}
+                    </Animated.Text>
+                </Animated.View>
+                <Animated.Image 
+                    onLayout = { e => {
+                        const layoutWidth = e.nativeEvent.layout.width;
+                        setDriverImgLayout(layoutWidth);
+                    }}
                     source={{ uri: driverImage }}
-                    style={styles.driverImage}
+                    style={[styles.driverImage, {
+                        position: driverImagePosition === 1 ? 'absolute' : 'relative',
+                        top: driverImageTop,
+                        left: driverImageLeft,
+                        transform: [
+                            { scale: driverImageScale }
+                        ]
+                    }]}
                 />
             </Animated.View>
             <Animated.Image 
                 source={require('../../assets/logoAlt.png')}
                 style={[styles.logoStyle, {
-                    left: translateLogo
+                    left: translateLogo,
+                    opacity: logoOpacity
                 }]}
                 resizeMode="contain"
             />
@@ -134,7 +161,20 @@ const DriverInfoScreen = ({ navigation }) => {
                     opacity
                 }]}
             >
-                {/* <Animated.View>
+                <Animated.View 
+                    style={[styles.driverFavourites, {
+                        transform: [
+                            { translateX: driverFavouritesX },
+                            { translateY: driverFavouritesY },
+                            { scale: driverFavouritesScale }
+                        ]
+                    }]}
+                    onLayout={e => {
+                        const layoutWidth = e.nativeEvent.layout.width;
+                        const layoutHeight = e.nativeEvent.layout.height;
+                        setDriverFavLayout({ width: layoutWidth, height: layoutHeight });
+                    }}
+                >
                     <Animated.Text style={[styles.aboutHeader, {
                         opacity
                     }]}>
@@ -152,18 +192,33 @@ const DriverInfoScreen = ({ navigation }) => {
                                         <View style={styles.iconWrapper}>
                                             <FontAwesome5 name="fire-alt" size={24} color="#fff" />
                                         </View>
-                                        <View style={styles.infoText}>
-                                            <Text style={styles.infoKey}>{info.infoKey}</Text>
-                                            <Text style={styles.infoValue}>{info.infoValue}</Text>
-                                        </View>
+                                        <Animated.View 
+                                            onLayout={e => {
+                                                const layoutWidth = e.nativeEvent.layout.width;
+                                                setInfoTextWidth(layoutWidth);
+                                            }}
+                                            style={[styles.infoText, {
+                                                
+                                            }]}
+                                        >
+                                            <Text style={styles.infoKey}>
+                                                {info.infoKey}
+                                            </Text>
+                                            <Text style={styles.infoValue}>
+                                                {info.infoValue}
+                                            </Text>
+                                        </Animated.View>
                                     </Animated.View>
                                 )
                             })
                         }
                     </View>
-                </Animated.View> */}
+                </Animated.View>
                 <Animated.View style={[styles.weatherView, {
-
+                    opacity: weatherViewOpacity,
+                    transform: [
+                        {translateY: weatherViewTranslateY}
+                    ]
                 }]}>
                     <Text style={styles.city}>{city},</Text>
                     <Text style={styles.area}>{area}</Text>
@@ -177,7 +232,7 @@ const DriverInfoScreen = ({ navigation }) => {
                                 size={48} color="white" 
                             />
                         }
-                        <Text style={styles.temperature}>{weatherData.temp}℃</Text>
+                        <Text style={styles.temperature}>{weatherData.temp}°</Text>
                     </View>
                     <View style={styles.weatherUpdate}>
                         <View style={styles.weatherBox}>
@@ -235,15 +290,13 @@ const styles = StyleSheet.create({
         width: 160,
         height: 160,
         borderRadius: 90,
-        marginTop: 20
+        marginTop: 20,
     },
     logoStyle: {
         width: 160, 
         height: 45,
         position: 'absolute',
         bottom: 40,
-        // borderColor: '#fff',
-        // borderWidth: 2
     },
     aboutDriver: {
         height: '100%',
@@ -263,8 +316,6 @@ const styles = StyleSheet.create({
         marginTop: 1
     },  
     aboutInfo: {
-        // borderColor: 'black',
-        // borderWidth: 2,
         flexDirection: 'row',
         paddingVertical: 7,
         alignItems: 'center'
@@ -301,7 +352,8 @@ const styles = StyleSheet.create({
         marginLeft: 14
     },
     weatherView: {
-        paddingLeft: 15
+        paddingLeft: 22,
+        position: 'absolute'
     },
     city: {
         color: '#fff',
@@ -327,7 +379,7 @@ const styles = StyleSheet.create({
         fontSize: 36,
         color: '#fff',
         fontWeight: 'bold',
-        marginLeft: 25
+        marginLeft: 15
     },
     weatherBox: {
         height: 80,
