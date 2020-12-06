@@ -8,6 +8,7 @@ import WelcomeScreen from './src/screens/WelcomeScreen';
 import { setNavigator } from './src/navigationRef';
 import PreAuthScreen from './src/screens/PreAuthScreen';
 import DriverInfoScreen from './src/screens/DriverInfoScreen';
+import AdPlayerScreen from './src/screens/AdPlayerScreen';
 
 
 
@@ -17,7 +18,8 @@ const navigator = createSwitchNavigator({
   welcomeFlow: createStackNavigator({
     Welcome: WelcomeScreen,
     DriverInfo: DriverInfoScreen
-  })
+  }),
+  AdPlayer: AdPlayerScreen
 })
 
 

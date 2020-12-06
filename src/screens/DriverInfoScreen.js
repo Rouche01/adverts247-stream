@@ -71,6 +71,17 @@ const DriverInfoScreen = ({ navigation }) => {
     }, [])
 
 
+    useEffect(() => {
+
+        if(driverImage && driverFirstName) {
+            setTimeout(() => {
+                navigation.navigate('AdPlayer', {driverInfo: { image: driverImage, name: driverFirstName }});
+            }, 12000)
+        }
+
+    }, [driverImage, driverFirstName]);
+
+
     if(!driverImage) {
         return (
             <ImageBackground

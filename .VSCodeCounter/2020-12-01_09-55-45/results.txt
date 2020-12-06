@@ -1,0 +1,56 @@
+Date : 2020-12-01 09:55:45
+Directory : c:\Users\User\Desktop\adverts247-stream
+Total : 22 files,  9187 codes, 18 comments, 186 blanks, all 9391 lines
+
+Languages
++------------+------------+------------+------------+------------+------------+
+| language   | files      | code       | comment    | blank      | total      |
++------------+------------+------------+------------+------------+------------+
+| JSON       |          4 |      8,161 |         16 |          3 |      8,180 |
+| JavaScript |         17 |      1,024 |          2 |        182 |      1,208 |
+| Markdown   |          1 |          2 |          0 |          1 |          3 |
++------------+------------+------------+------------+------------+------------+
+
+Directories
++----------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                       | files      | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                          |         22 |      9,187 |         18 |        186 |      9,391 |
+| .expo-shared                                                               |          1 |          4 |          0 |          1 |          5 |
+| src                                                                        |         15 |        992 |          2 |        172 |      1,166 |
+| src\api                                                                    |          2 |         10 |          0 |          5 |         15 |
+| src\components                                                             |          1 |         25 |          0 |          6 |         31 |
+| src\context                                                                |          2 |        104 |          0 |         36 |        140 |
+| src\hooks                                                                  |          4 |        244 |          1 |         60 |        305 |
+| src\screens                                                                |          4 |        530 |          1 |         60 |        591 |
+| src\utils                                                                  |          1 |         66 |          0 |          1 |         67 |
++----------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++----------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| filename                                                                   | language   | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| c:\Users\User\Desktop\adverts247-stream\.expo-shared\assets.json           | JSON       |          4 |          0 |          1 |          5 |
+| c:\Users\User\Desktop\adverts247-stream\App.js                             | JavaScript |         26 |          0 |          9 |         35 |
+| c:\Users\User\Desktop\adverts247-stream\README.md                          | Markdown   |          2 |          0 |          1 |          3 |
+| c:\Users\User\Desktop\adverts247-stream\app.json                           | JSON       |         17 |         16 |          0 |         33 |
+| c:\Users\User\Desktop\adverts247-stream\babel.config.js                    | JavaScript |          6 |          0 |          1 |          7 |
+| c:\Users\User\Desktop\adverts247-stream\package-lock.json                  | JSON       |      8,102 |          0 |          1 |      8,103 |
+| c:\Users\User\Desktop\adverts247-stream\package.json                       | JSON       |         38 |          0 |          1 |         39 |
+| c:\Users\User\Desktop\adverts247-stream\src\api\adverts247Api.js           | JavaScript |          5 |          0 |          3 |          8 |
+| c:\Users\User\Desktop\adverts247-stream\src\api\weatherApi.js              | JavaScript |          5 |          0 |          2 |          7 |
+| c:\Users\User\Desktop\adverts247-stream\src\components\CustomInput.js      | JavaScript |         25 |          0 |          6 |         31 |
+| c:\Users\User\Desktop\adverts247-stream\src\context\DriverContext.js       | JavaScript |         89 |          0 |         26 |        115 |
+| c:\Users\User\Desktop\adverts247-stream\src\context\createDataContext.js   | JavaScript |         15 |          0 |         10 |         25 |
+| c:\Users\User\Desktop\adverts247-stream\src\hooks\useAnimation.js          | JavaScript |        161 |          1 |         31 |        193 |
+| c:\Users\User\Desktop\adverts247-stream\src\hooks\useDate.js               | JavaScript |         28 |          0 |          8 |         36 |
+| c:\Users\User\Desktop\adverts247-stream\src\hooks\useLocation.js           | JavaScript |         24 |          0 |          9 |         33 |
+| c:\Users\User\Desktop\adverts247-stream\src\hooks\useWeatherData.js        | JavaScript |         31 |          0 |         12 |         43 |
+| c:\Users\User\Desktop\adverts247-stream\src\navigationRef.js               | JavaScript |         13 |          0 |          4 |         17 |
+| c:\Users\User\Desktop\adverts247-stream\src\screens\DriverInfoScreen.js    | JavaScript |        388 |          1 |         21 |        410 |
+| c:\Users\User\Desktop\adverts247-stream\src\screens\PreAuthScreen.js       | JavaScript |         26 |          0 |         12 |         38 |
+| c:\Users\User\Desktop\adverts247-stream\src\screens\SigninScreen.js        | JavaScript |         64 |          0 |         12 |         76 |
+| c:\Users\User\Desktop\adverts247-stream\src\screens\WelcomeScreen.js       | JavaScript |         52 |          0 |         15 |         67 |
+| c:\Users\User\Desktop\adverts247-stream\src\utils\weatherIconDictionary.js | JavaScript |         66 |          0 |          1 |         67 |
+| Total                                                                      |            |      9,187 |         18 |        186 |      9,391 |
++----------------------------------------------------------------------------+------------+------------+------------+------------+------------+
