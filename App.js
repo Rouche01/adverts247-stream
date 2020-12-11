@@ -4,11 +4,13 @@ import { createAppContainer, createSwitchNavigator } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
 import SigninScreen from './src/screens/SigninScreen';
 import { Provider as DriverProvider } from './src/context/DriverContext';
+import { Provider as VodContentProvider } from './src/context/vodContentContext';
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import { setNavigator } from './src/navigationRef';
 import PreAuthScreen from './src/screens/PreAuthScreen';
 import DriverInfoScreen from './src/screens/DriverInfoScreen';
 import AdPlayerScreen from './src/screens/AdPlayerScreen';
+import TempScreen from './src/screens/TempScreen';
 
 
 
@@ -19,7 +21,8 @@ const navigator = createSwitchNavigator({
     Welcome: WelcomeScreen,
     DriverInfo: DriverInfoScreen
   }),
-  AdPlayer: AdPlayerScreen
+  AdPlayer: AdPlayerScreen,
+  Temp: TempScreen
 })
 
 
@@ -30,7 +33,9 @@ const App = createAppContainer(navigator);
 export default () => {
   return(
     <DriverProvider>
-      <App ref={(navigator) => setNavigator(navigator)} />
+      <VodContentProvider>
+        <App ref={(navigator) => setNavigator(navigator)} />
+      </VodContentProvider>
     </DriverProvider>
   )
 }

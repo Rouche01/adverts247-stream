@@ -1,17 +1,32 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { ImageBackground, Text, View, StyleSheet, StatusBar, Image } from 'react-native';
 import { Context as DriverContext } from '../context/DriverContext';
 import useLocation from '../hooks/useLocation';
 import useDate from '../hooks/useDate';
 import useWeatherData from '../hooks/useWeatherData';
+import * as Brightness from 'expo-brightness';
 
 
 const WelcomeScreen = ({ navigation }) => {
 
     const { state: { user } } = useContext(DriverContext);
+
     const [ location, errorMsg, latLongVal ] = useLocation();
     const [ dateString ] = useDate();
     const [ weatherData ] = useWeatherData(latLongVal);
+
+    const [ errorMessage, setErrorMessage ] = useState(null);
+
+
+    useEffect(() => {
+        (async() => {
+            const { status } = await Brightness.requestPermissionsAsync();
+            console.log(status);
+            if(status !== 'granted') {
+                setErrorMessage('Permission is needed to access your phone settings')
+            }
+        })();
+    })
 
 
     useEffect(() => {

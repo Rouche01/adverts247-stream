@@ -75,7 +75,7 @@ const DriverInfoScreen = ({ navigation }) => {
 
         if(driverImage && driverFirstName) {
             setTimeout(() => {
-                navigation.navigate('AdPlayer', {driverInfo: { image: driverImage, name: driverFirstName }});
+                navigation.navigate('AdPlayer');
             }, 12000)
         }
 

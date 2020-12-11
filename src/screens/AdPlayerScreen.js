@@ -1,8 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, Dimensions, StatusBar, Image } from 'react-native';
+import React, { useContext, useEffect, useState } from 'react';
+import { 
+    StyleSheet, 
+    View, 
+    Text, 
+    Dimensions, 
+    StatusBar, 
+    Image, 
+    TouchableOpacity 
+} from 'react-native';
 import VideoPlayer from '../components/VideoPlayer';
 import { MaterialIcons } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { Context as DriverContext } from '../context/DriverContext';
+// import LoaderAnimation from '../components/LoaderAnimation';
+import Slider from '@react-native-community/slider';
+import * as Brightness from 'expo-brightness';
+import { Context as VodContentContext } from '../context/vodContentContext';
 
 
 const SCREEN_WIDTH = Dimensions.get('screen').width;
@@ -11,13 +24,103 @@ const SCREEN_HEIGHT = Dimensions.get('screen').height;
 const AdPlayerScreen = ({ navigation }) => {
 
     const [ driverInfo, setDriverInfo ] = useState(null);
+    const [ mute, setMute ] = useState(false);
+    const [ showVolSlider, setShowVolSlider ] = useState(false);
+    const [ showBrightnessSlider, setShowBrightnessSlider ] = useState(false);
+    const [ volumeValue, setVolumeValue ] = useState(1);
+    const [ brightnessValue, setBrightnessValue ] = useState(0);
+    const { state: { user } } = useContext(DriverContext);
+
+
+    const { state: { entertainContent, error }, getEntertainContent } = useContext(VodContentContext);
+
 
     useEffect(() => {
 
-        setDriverInfo(navigation.state.params.driverInfo);
-        // console.log(navigation.state.params);
+        getEntertainContent();
+
+        (async() => {
+            let deviceBrightness = await Brightness.getBrightnessAsync();
+            deviceBrightness = deviceBrightness.toFixed(1)
+            setBrightnessValue(+deviceBrightness);
+        })();
 
     }, []);
+
+    useEffect(() => {
+
+        console.log(error)
+
+    }, [error]);
+
+    useEffect(() => {
+
+        (async() => {
+            await Brightness.setBrightnessAsync(brightnessValue);
+        })();
+
+    }, [brightnessValue])
+
+    useEffect(() => {
+
+        if(user) {
+            setDriverInfo(user);
+        }
+
+    }, [user]);
+
+
+    const onMutePressed = () => {
+        setMute(!mute);
+    }
+
+    const showVolumeSlider = () => {
+
+        if(showBrightnessSlider) {
+            setShowBrightnessSlider(false);
+        }
+
+        setShowVolSlider(!showVolSlider);
+
+        // setTimeout(() => {
+        //     setShowVolSlider(false);
+        // }, 4000 );
+    }
+
+    const onSliderRelease = (val) => {
+        setVolumeValue(val);
+        setTimeout(() => {
+            setShowVolSlider(false);
+        }, 1000)
+    }
+
+    const toggleBrightnessSlider = () => {
+
+        if(showVolSlider) {
+            setShowVolSlider(false);
+        }
+
+        setShowBrightnessSlider(!showBrightnessSlider);
+
+    }
+
+    const onBrightnessSliderRelease = (val) => {
+        
+        setBrightnessValue(val);
+        setTimeout(() => {
+            setShowBrightnessSlider(false);
+        }, 1000);
+
+    }
+
+    if(!driverInfo && entertainContent.length === 0) {
+        return (
+            <View 
+                style={styles.nullBg}
+            >
+            </View>
+        )
+    }
 
     return (
         <View style={styles.container}>
@@ -29,6 +132,9 @@ const AdPlayerScreen = ({ navigation }) => {
             <VideoPlayer 
                 videoWidth={SCREEN_WIDTH}
                 videoHeight={SCREEN_HEIGHT - (SCREEN_HEIGHT * 0.15)}
+                muteState={mute}
+                volumeState={volumeValue}
+                playlist={entertainContent}
             />
             <View style={styles.settingsBar}>
                 <Image source={require('../../assets/logoAlt.png')} resizeMode="contain" 
@@ -36,37 +142,72 @@ const AdPlayerScreen = ({ navigation }) => {
                 />
                 <View style={styles.leftCol}>
                     <View style={styles.videoControls}>
-                        <View style={styles.ctrlWrapper}>
-                            <MaterialIcons style={styles.ctrlIcon} 
-                                name="brightness-6" 
-                                size={18} 
-                                color="#E6E6E6" 
-                            />
-                            <Text style={styles.ctrlLabel}>Brightness</Text>
+                        <View style={styles.brightnessGroup}>
+                            { showBrightnessSlider ? <Slider 
+                                style={styles.sliderStyle}
+                                minimumValue={0}
+                                maximumValue={1}
+                                thumbTintColor='#F1040E'
+                                minimumTrackTintColor="#F1040E"
+                                maximumTrackTintColor="rgba(255,255,255,0.5)"
+                                step={0.1}
+                                value={brightnessValue}
+                                onSlidingComplete={(val) => { onBrightnessSliderRelease(val) }}
+                            /> : null }
+                            <TouchableOpacity
+                                onPress={toggleBrightnessSlider} 
+                                style={styles.ctrlWrapper}
+                            >
+                                <MaterialIcons style={styles.ctrlIcon} 
+                                    name="brightness-6" 
+                                    size={18} 
+                                    color="#E6E6E6" 
+                                />
+                                <Text style={styles.ctrlLabel}>Brightness</Text>
+                            </TouchableOpacity>
                         </View>
-                        <View style={styles.ctrlWrapper}>
-                            <FontAwesome5 
-                                style={styles.ctrlIcon} 
-                                name="volume-down" 
-                                size={18} 
-                                color="#E6E6E6" 
-                            />
-                            <Text style={styles.ctrlLabel}>Volume</Text>
+                        <View style={styles.volumeGroup}>
+                            { showVolSlider ? <Slider 
+                                style={styles.sliderStyle}
+                                minimumValue={0}
+                                maximumValue={1}
+                                thumbTintColor='#F1040E'
+                                minimumTrackTintColor="#F1040E"
+                                maximumTrackTintColor="rgba(255,255,255,0.5)"
+                                step={0.1}
+                                value={volumeValue}
+                                onSlidingComplete={(val) => { onSliderRelease(val) }}
+                            /> : null }
+                            <TouchableOpacity 
+                                style={styles.ctrlWrapper}
+                                onPress={showVolumeSlider}
+                            >
+                                <FontAwesome5 
+                                    style={styles.ctrlIcon} 
+                                    name="volume-down" 
+                                    size={18} 
+                                    color="#E6E6E6" 
+                                />
+                                <Text style={styles.ctrlLabel}>Volume</Text>
+                            </TouchableOpacity>
                         </View>
-                        <View style={styles.ctrlWrapper}>
+                        <TouchableOpacity 
+                            style={styles.ctrlWrapper}
+                            onPress={() => onMutePressed()}
+                        >
                             <FontAwesome5 
                                 style={styles.ctrlIcon} 
                                 name="volume-mute" 
                                 size={18} color="#E6E6E6" 
                             />
                             <Text style={styles.ctrlLabel}>Mute</Text>
-                        </View>
+                        </TouchableOpacity>
                     </View>
                     <View style={styles.driverInfo}>
-                        {/* <Image 
-                            source={{ uri: driverInfo.image }}
+                        <Image 
+                            source={{ uri: driverInfo.profilePhoto }}
                             style={styles.driverImg}
-                        /> */}
+                        />
                         {/* <Text>{driverInfo.name}</Text> */}
                     </View>
                 </View>
@@ -78,6 +219,12 @@ const AdPlayerScreen = ({ navigation }) => {
 
 
 const styles = StyleSheet.create({
+    nullBg: {
+        flex: 1,
+        justifyContent: 'center',
+        alignContent: 'center',
+        backgroundColor: '#222'
+    },  
     container: {
         flex: 1
     },
@@ -129,6 +276,20 @@ const styles = StyleSheet.create({
         width: 50,
         height: 50,
         borderRadius: 25
+    },
+    volumeGroup: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    brightnessGroup: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },  
+    sliderStyle: {
+        width: 150,
+        height: 30
     }
 });
 

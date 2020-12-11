@@ -1,201 +1,275 @@
-import React, { useEffect, useState } from 'react';
-import { Video, Audio } from 'expo-av';
-import { StyleSheet, View, ActivityIndicator } from 'react-native';
-import LottieView from 'lottie-react-native';
-import { withNavigation } from 'react-navigation';
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { Audio, Video } from "expo-av";
+import LoaderAnimation from './LoaderAnimation';
 
 
-const playlist = [
-    {
-        title: 'Trailer',
-        uri: 'https://vod-247bucket.s3.us-east-2.amazonaws.com/TRAILER/Default/HLS/TRAILER.m3u8',
-        isAd: false
-    },
-    {
-        title: 'Trial',
-        uri: 'https://vod-247bucket.s3.us-east-2.amazonaws.com/trial/Default/HLS/trial.m3u8',
-        isAd: false
-    }
-]
-
-const VideoPlayer = ({ videoWidth, videoHeight, navigation }) => {
+class PlaylistItem {
+  constructor(name, uri, isVideo) {
+    this.name = name;
+    this.uri = uri;
+    this.isVideo = isVideo;
+  }
+}
 
 
-    const [ muted, setMuted ] = useState(false);
-    const [ playbackInstance, setPlaybackInstance ] = useState(null);
-    const [ index, setIndex ] = useState(0);
-    const [ playbackInstancePosition, setPlaybackInstancePosition ] = useState(null);
-    const [ playbackInstanceDuration, setPlaybackInstanceDuration ] = useState(null);
-    const [ shouldPlay, setShouldPlay ] = useState(false);
-    const [ isPlaying, setIsPlaying ] = useState(false);
-    const [ isBuffering, setIsBuffering ] = useState(false);
-    const [ isLoading, setIsLoading ] = useState(false);
-    const [ volume, setVolume ] = useState(1.0);
-    const [ rate, setRate ] = useState(1.0);
+export default class VideoPlayer extends React.Component {
+  constructor(props) {
+    super(props);
+    // this.index = 0;
+    this.playbackInstance = null;
+    this.state = {
+      index: 2,
+      playlist: [],
+      showCountdown: false,
+      loopingType: false,
+      muted: false,
+      playbackInstancePosition: null,
+      playbackInstanceDuration: null,
+      shouldPlay: true,
+      isPlaying: false,
+      isBuffering: false,
+      isLoading: true,
+      shouldCorrectPitch: true,
+      volume: 1.0,
+      rate: 1.0,
+    };
+  }
 
-    useEffect(() => {
+  componentDidMount() {
 
-        (async () => {
-            try {
-                await Audio.setAudioModeAsync({
-                    allowsRecordingIOS: false,
-                    staysActiveInBackground: false,
-                    interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_MIX_WITH_OTHERS,
-                    playsInSilentModeIOS: true,
-                    shouldDuckAndroid: true,
-                    interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
-                    playThroughEarpieceAndroid: false
-                });
-            } catch(e) {
-                console.log(e);
-            }
-        })();
+    Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+      staysActiveInBackground: false,
+      interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
+      playsInSilentModeIOS: true,
+      shouldDuckAndroid: true,
+      interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
+      playThroughEarpieceAndroid: false
+    });
 
-    }, []);
+    
+  }
 
 
+  componentDidUpdate(prevProps, prevState) {
 
-    const loadNewPlaybackInstance = async(playing) => {
-        if(playbackInstance != null) {
-            await playbackInstance.unloadAsync();
-            playbackInstance = null;
+      if(this.props.muteState !== prevProps.muteState) {
+        console.log(this.props.muteState);
+        if (this.playbackInstance != null) {
+            this.playbackInstance.setIsMutedAsync(this.props.muteState);
         }
-
-        const source = { uri: playlist[index].uri };
-        const initialStatus = {
-            shouldPlay: playing,
-            rate: rate,
-            volume: volume,
-            isMuted: muted,
-            isLooping: false
+      }
+      
+      if(this.props.volumeState !== prevProps.volumeState) {
+        console.log(this.props.volumeState);
+        if (this.playbackInstance != null) {
+            this.playbackInstance.setVolumeAsync(this.props.volumeState);
         }
+      }
 
-        console.log(_onPlaybackStatusUpdate);
+      if(this.props.playlist.length > 0 && this.props.playlist !== prevProps.playlist) {
 
-        console.log(playbackVideo.loadAsync(source, initialStatus));
-        await playbackVideo.loadAsync(source, initialStatus);
-        console.log(2)
-        playbackInstance = playbackVideo;
-        console.log(3);
-        const status = await playbackVideo.getStatusAsync();
+        let createdPlaylist = this.props.playlist.map(video => {
+          return new PlaylistItem(
+            video,
+            `https://vod-247bucket.s3.us-east-2.amazonaws.com/${video}/Default/HLS/${video}.m3u8`,
+            true
+          )
+        });
+    
+        this.setState({
+          playlist: createdPlaylist
+        });
 
-        updateScreenForLoading(false);
-    }
+      }
 
-    const _mountVideo = async(component) => {
+      if(this.state.index === 2) {
 
-        const playbackVideo = component;
-        if(index < playlist.length) {
-            const source = { uri: playlist[index].uri };
-            const initialStatus = {
-                shouldPlay: true,
-                rate: rate,
-                volume: volume,
-                isMuted: muted,
-                isLooping: false
-            }
-            try {
-                await playbackVideo.loadAsync(source, initialStatus);
-            } catch(e) {
-                console.log(e);
-            }
-        } else {
-            navigation.navigate('DriverInfo');
+        let totalDurationInSeconds = this._getMMSSFromMillis(this.state.playbackInstanceDuration);
+        let positionInSeconds = this._getMMSSFromMillis(this.state.playbackInstancePosition);
+
+        if((totalDurationInSeconds - positionInSeconds) < 4 && !this.state.showCountdown) {
+
+          console.log('works');
+          this.setState({
+            showCountdown: true
+          });
+
         }
-        console.log(component);
-        // loadNewPlaybackInstance(true);
+      }
+  }
+
+  async _loadNewPlaybackInstance(playing) {
+    if (this.playbackInstance != null) {
+      await this.playbackInstance.unloadAsync();
+      // this.playbackInstance.setOnPlaybackStatusUpdate(null);
+      this.playbackInstance = null;
     }
 
-    const updateScreenForLoading = (isLoading) => {
-        if(isLoading) {
-            setShowVideo(false);
-            setIsPlaying(false);
-            setPlaybackInstanceDuration(null);
-            setPlaybackInstancePosition(null);
-            setIsLoading(true);
-        } else {
-            setShowVideo(true);
-            setIsLoading(false);    
-        }
+    const source = { uri: this.state.playlist[this.state.index].uri };
+    const initialStatus = {
+      shouldPlay: playing,
+      rate: this.state.rate,
+      shouldCorrectPitch: this.state.shouldCorrectPitch,
+      volume: this.state.volume,
+      isMuted: this.state.muted,
+      isLooping: this.state.loopingType
+    };
+
+    try {
+      await this._video.loadAsync(source, initialStatus);
+      // this._video.onPlaybackStatusUpdate(this._onPlaybackStatusUpdate);
+      this.playbackInstance = this._video;
+      const status = await this._video.getStatusAsync();
+
+      this._updateScreenForLoading(false);
+    } catch(err) {
+      console.log(err);
     }
+    
+  }
 
-    let instanceDuration;
+  _mountVideo = component => {
 
-    const _onPlaybackStatusUpdate = status => {
-        if(status.isLoaded) {
-            instanceDuration = status.positionMillis
-            console.log(instanceDuration);
-            // setPlaybackInstanceDuration(status.durationMillis);
-            // setPlaybackInstancePosition(status.positionMillis);
-            // setShouldPlay(status.shouldPlay);
-            // setIsPlaying(status.isPlaying);
-            // setIsBuffering(status.isBuffering);
-            // setRate(status.rate);
-            // setMuted(status.isMuted);
-            // setVolume(status.volume);
-            if(status.didJustFinish && !status.isLooping) {
-                console.log('works, 2');
-                advanceIndex(true);
-                // updatePlaybackInstanceForIndex(true);
-            }
-        } else {
-            if(status.error) {
-                console.log(`FATAL PLAYER ERROR: ${status.error}`)
-            }
-        }
+    this._video = component;
+    this._loadNewPlaybackInstance(true);
+
+  };
+
+  _updateScreenForLoading(isLoading) {
+    if (isLoading) {
+      this.setState({
+        isPlaying: false,
+        playbackInstanceDuration: null,
+        playbackInstancePosition: null,
+        isLoading: true
+      });
+    } else {
+      this.setState({
+        isLoading: false
+      });
     }
+  }
 
-    const advanceIndex = (forward) => {
-        setIndex(index + 1);
+  _onPlaybackStatusUpdate = status => {
+    if (status.isLoaded) {
+      this.setState({
+        playbackInstancePosition: status.positionMillis,
+        playbackInstanceDuration: status.durationMillis,
+        shouldPlay: status.shouldPlay,
+        isPlaying: status.isPlaying,
+        isBuffering: status.isBuffering,
+        rate: status.rate,
+        muted: status.isMuted,
+        volume: status.volume,
+        loopingType: status.isLooping,
+        shouldCorrectPitch: status.shouldCorrectPitch
+      });
+      if (status.didJustFinish && !status.isLooping) {
+        this._advanceIndex(true);
+        this._updatePlaybackInstanceForIndex(true);
+      }
+    } else {
+      if (status.error) {
+        console.log(`FATAL PLAYER ERROR: ${status.error}`);
+      }
     }
+  };
 
-    const updatePlaybackInstanceForIndex = (playing) => {
-        updateScreenForLoading(true);
-        loadNewPlaybackInstance(playing);
+
+  _advanceIndex(forward) {
+    this.setState({
+      index: this.state.index + 1
+    })
+  }
+
+  async _updatePlaybackInstanceForIndex(playing) {
+
+    this._updateScreenForLoading(true);
+    this._loadNewPlaybackInstance(playing);
+
+  }
+
+
+  _getMMSSFromMillis(millis) {
+    const totalSeconds = millis / 1000;
+    const seconds = Math.floor(totalSeconds % 60);
+    const minutes = Math.floor(totalSeconds / 60);
+
+    // const padWithZero = number => {
+    //   const string = number.toString();
+    //   if (number < 10) {
+    //     return "0" + string;
+    //   }
+    //   return string;
+    // };
+    return totalSeconds;
+  }
+
+
+  render() {
+    if (this.state.playlist.length === 0) {
+      return (
+        <View style={styles.nonPlaylist}>
+
+        </View>
+      );
     }
-
-    let loader;
-
     return (
+      <View style={styles.container}>
+        
         <View style={[styles.videoContainer, {
-            width: videoWidth, 
-            height: videoHeight
+            width: this.props.videoWidth, 
+            height: this.props.videoHeight
         }]}>
             <Video 
-                ref={_mountVideo}
+                ref={this._mountVideo}
                 resizeMode="cover"
-                style={{ width: videoWidth, height: videoHeight, position: 'absolute', top: 0, right: 0, left: 0, alignItems: "stretch" }}
-                onPlaybackStatusUpdate={_onPlaybackStatusUpdate}
+                style={{ width: this.props.videoWidth, height: this.props.videoHeight, position: 'absolute', top: 0, right: 0, left: 0, alignItems: "stretch" , opacity: this.state.isLoading ? 0.5 : 1 }}
+                onPlaybackStatusUpdate={this._onPlaybackStatusUpdate}
             />
             <View style={{ alignItems: 'center', flexDirection: 'column' }}>
-                {/* <ActivityIndicator 
-                    size={40}
-                    color='red'
-                    style={{ marginTop: videoHeight / 2 }}
-                /> */}
-                <LottieView 
-                    ref={(animation) => { 
-                        loader = animation;
-                        loader.play();
-                    }}
-                    style={styles.lottie}
-                    source={require('../../assets/loader.json')}
-                />
+                <View>
+                    { this.state.isLoading ? <LoaderAnimation /> : null }
+                </View>
             </View>
+            { this.state.showCountdown ? <View style={styles.adCountdown}>
+              <Text style={styles.countdownText}>Ad starts in 3</Text>
+            </View> : null }
         </View>
+      </View>
+
+      
     );
+  }
 }
 
 
 const styles = StyleSheet.create({
-    videoContainer: {
+    nonPlaylist: {
+      backgroundColor: '#222',
+      flex: 1
+    },
+    container: {
         flex: 1
     },
-    lottie: {
-        width: 70,
-        height: 70
+    videoContainer: {
+        flex: 1,
+        backgroundColor: '#222'
+    },
+    adCountdown: {
+      backgroundColor: '#262525',
+      position: 'absolute',
+      bottom: 100,
+      right: 50,
+      paddingHorizontal: 20,
+      paddingVertical: 10
+    },
+    countdownText: {
+      color: '#fff',
+      fontSize: 16
     }
 });
 
 
-export default withNavigation(VideoPlayer);
