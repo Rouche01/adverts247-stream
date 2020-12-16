@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { ImageBackground, Text, View, StyleSheet, StatusBar, Image } from 'react-native';
+import { ImageBackground, Text, Alert, StyleSheet, StatusBar, Image } from 'react-native';
 import { Context as DriverContext } from '../context/DriverContext';
 import useLocation from '../hooks/useLocation';
 import useDate from '../hooks/useDate';
@@ -27,6 +27,14 @@ const WelcomeScreen = ({ navigation }) => {
             }
         })();
     })
+
+    useEffect(() => {
+
+        if(errorMsg) {
+            Alert.alert('Error Occured', errorMsg);
+        }
+
+    }, [errorMsg])
 
 
     useEffect(() => {

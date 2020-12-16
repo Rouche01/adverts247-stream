@@ -19,13 +19,15 @@ export default class VideoPlayer extends React.Component {
     // this.index = 0;
     this.playbackInstance = null;
     this.state = {
-      index: 2,
+      index: 0,
+      createdPlaylist: [],
       playlist: [],
       showCountdown: false,
+      toAdCounter: 3,
       loopingType: false,
       muted: false,
-      playbackInstancePosition: null,
-      playbackInstanceDuration: null,
+      playbackInstancePosition: 0,
+      playbackInstanceDuration: 0,
       shouldPlay: true,
       isPlaying: false,
       isBuffering: false,
@@ -68,36 +70,120 @@ export default class VideoPlayer extends React.Component {
         }
       }
 
-      if(this.props.playlist.length > 0 && this.props.playlist !== prevProps.playlist) {
+      const { mediaBucket } = this.props;
 
-        let createdPlaylist = this.props.playlist.map(video => {
-          return new PlaylistItem(
-            video,
-            `https://vod-247bucket.s3.us-east-2.amazonaws.com/${video}/Default/HLS/${video}.m3u8`,
+
+      if(mediaBucket.videos.length > 0 && mediaBucket.ads.length > 0 && mediaBucket !== prevProps.mediaBucket) {
+
+        const { videos, ads } = mediaBucket;
+        let playedIdx = this.props.entertainPlayedIdx;
+        let createdPlaylist = [];
+
+        if((videos.length - playedIdx.length) < 3) {
+          playedIdx = [];
+        }
+
+        for(let i = 0; i < 3; i++) {
+
+          let randomIdx;
+
+          do {
+            randomIdx = Math.ceil(Math.random() * (videos.length - 1));
+          }
+          while(playedIdx.includes(randomIdx));
+
+          playedIdx.push(randomIdx);
+
+          let playlistItem = new PlaylistItem(
+            videos[randomIdx],
+            `https://vod-247bucket.s3.us-east-2.amazonaws.com/${videos[randomIdx]}/Default/HLS/${videos[randomIdx]}.m3u8`,
             true
-          )
-        });
-    
+          );
+
+          createdPlaylist.push(playlistItem);
+
+        }
+
+        let playedAdsIdx = this.props.adsPlayedIdx;
+
+        if(ads.length === playedAdsIdx.length) {
+          playedAdsIdx = [];
+        }
+        let randomAdsIdx;
+        
+        do {
+          randomAdsIdx = Math.ceil(Math.random() * (ads.length - 1));
+        } 
+        while(playedAdsIdx.includes(randomAdsIdx));
+
+        playedAdsIdx.push(randomAdsIdx);
+
+        const adItem = new PlaylistItem(
+          ads[randomAdsIdx],
+          `https://247-adverts-mediabucket.s3.us-east-2.amazonaws.com/${ads[randomAdsIdx]}/Default/HLS/${ads[randomAdsIdx]}.m3u8`,
+          true
+        );
+
+        createdPlaylist.push(adItem);
+
+        this.props.savePlayedIdx(playedIdx);
+        this.props.savePlayedAdsIdx(playedAdsIdx);
+        console.log(playedIdx, playedAdsIdx);
+
+
         this.setState({
           playlist: createdPlaylist
+        }, () => {
+          console.log(this.state.playlist);
         });
 
       }
 
-      if(this.state.index === 2) {
 
-        let totalDurationInSeconds = this._getMMSSFromMillis(this.state.playbackInstanceDuration);
-        let positionInSeconds = this._getMMSSFromMillis(this.state.playbackInstancePosition);
+      if(this.state.index === 2 && this.state.playbackInstancePosition > 0) {
 
-        if((totalDurationInSeconds - positionInSeconds) < 4 && !this.state.showCountdown) {
+        const adPromptTime = this.state.playbackInstanceDuration - 4000;
+        // console.log(typeof(this.state.playbackInstancePosition), adPromptTime, this.state.playbackInstanceDuration);
+
+        if(this.state.playbackInstancePosition >= adPromptTime & !this.state.showCountdown) {
 
           console.log('works');
           this.setState({
             showCountdown: true
           });
 
+          let timesToRun = 0;
+          let adCounter = setInterval(() => {
+              timesToRun += 1;
+              if(timesToRun === 3) {
+                clearInterval(adCounter);
+              }
+
+              this.setState({
+                toAdCounter: this.state.toAdCounter - 1
+              })
+          }, 1000);
+
         }
       }
+
+
+      if(this.state.index === 3 && this.state.showCountdown) {
+
+        this.setState({
+          showCountdown: false
+        });
+
+      }
+  }
+
+  componentWillUnmount () {
+    
+    (async() => {
+      await this.playbackInstance.unloadAsync()
+      this.playbackInstance = null;
+    })();
+
   }
 
   async _loadNewPlaybackInstance(playing) {
@@ -167,8 +253,13 @@ export default class VideoPlayer extends React.Component {
         shouldCorrectPitch: status.shouldCorrectPitch
       });
       if (status.didJustFinish && !status.isLooping) {
-        this._advanceIndex(true);
-        this._updatePlaybackInstanceForIndex(true);
+        if(this.state.index === 3) {
+          console.log(this.props.navigation);
+          this.props.navigation.navigate('GameStart');
+        } else {
+          this._advanceIndex();
+          this._updatePlaybackInstanceForIndex(true);
+        }
       }
     } else {
       if (status.error) {
@@ -178,7 +269,7 @@ export default class VideoPlayer extends React.Component {
   };
 
 
-  _advanceIndex(forward) {
+  _advanceIndex() {
     this.setState({
       index: this.state.index + 1
     })
@@ -235,7 +326,7 @@ export default class VideoPlayer extends React.Component {
                 </View>
             </View>
             { this.state.showCountdown ? <View style={styles.adCountdown}>
-              <Text style={styles.countdownText}>Ad starts in 3</Text>
+              <Text style={styles.countdownText}>Ad starts in {this.state.toAdCounter}</Text>
             </View> : null }
         </View>
       </View>

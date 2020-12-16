@@ -32,12 +32,19 @@ const AdPlayerScreen = ({ navigation }) => {
     const { state: { user } } = useContext(DriverContext);
 
 
-    const { state: { entertainContent, error }, getEntertainContent } = useContext(VodContentContext);
+    const { 
+        state: { mediaList, error, entertainPlayedIdx, adsPlayedIdx }, 
+        getEntertainContent, 
+        getAdContent ,
+        savePlayedIdx,
+        savePlayedAdsIdx
+    } = useContext(VodContentContext);
 
 
     useEffect(() => {
 
         getEntertainContent();
+        getAdContent();
 
         (async() => {
             let deviceBrightness = await Brightness.getBrightnessAsync();
@@ -113,7 +120,7 @@ const AdPlayerScreen = ({ navigation }) => {
 
     }
 
-    if(!driverInfo && entertainContent.length === 0) {
+    if(!driverInfo && mediaList.videos.length === 0 && mediaList.ads.length === 0) {
         return (
             <View 
                 style={styles.nullBg}
@@ -134,7 +141,12 @@ const AdPlayerScreen = ({ navigation }) => {
                 videoHeight={SCREEN_HEIGHT - (SCREEN_HEIGHT * 0.15)}
                 muteState={mute}
                 volumeState={volumeValue}
-                playlist={entertainContent}
+                mediaBucket={mediaList}
+                entertainPlayedIdx={entertainPlayedIdx}
+                adsPlayedIdx={adsPlayedIdx}
+                savePlayedIdx={savePlayedIdx}
+                savePlayedAdsIdx={savePlayedAdsIdx}
+                navigation={navigation}
             />
             <View style={styles.settingsBar}>
                 <Image source={require('../../assets/logoAlt.png')} resizeMode="contain" 

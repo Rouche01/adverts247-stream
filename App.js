@@ -10,7 +10,9 @@ import { setNavigator } from './src/navigationRef';
 import PreAuthScreen from './src/screens/PreAuthScreen';
 import DriverInfoScreen from './src/screens/DriverInfoScreen';
 import AdPlayerScreen from './src/screens/AdPlayerScreen';
-import TempScreen from './src/screens/TempScreen';
+import GameStartScreen from './src/screens/GameStartScreen';
+import GameIntroScreen from './src/screens/GameIntroScreen'
+import TriviaQuestionScreen from './src/screens/TriviaQuestionScreen';
 
 
 
@@ -22,7 +24,9 @@ const navigator = createSwitchNavigator({
     DriverInfo: DriverInfoScreen
   }),
   AdPlayer: AdPlayerScreen,
-  Temp: TempScreen
+  GameStart: GameStartScreen,
+  GameIntro: GameIntroScreen,
+  TriviaQuestion: TriviaQuestionScreen
 })
 
 
