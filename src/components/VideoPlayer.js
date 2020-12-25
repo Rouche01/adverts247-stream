@@ -88,7 +88,7 @@ export default class VideoPlayer extends React.Component {
           let randomIdx;
 
           do {
-            randomIdx = Math.ceil(Math.random() * (videos.length - 1));
+            randomIdx = Math.floor(Math.random() * videos.length);
           }
           while(playedIdx.includes(randomIdx));
 
@@ -96,7 +96,7 @@ export default class VideoPlayer extends React.Component {
 
           let playlistItem = new PlaylistItem(
             videos[randomIdx],
-            `https://vod-247bucket.s3.us-east-2.amazonaws.com/${videos[randomIdx]}/Default/HLS/${videos[randomIdx]}.m3u8`,
+            `https://du0jby8g769zz.cloudfront.net/${videos[randomIdx]}/Default/HLS/${videos[randomIdx]}.m3u8`,
             true
           );
 
@@ -112,7 +112,7 @@ export default class VideoPlayer extends React.Component {
         let randomAdsIdx;
         
         do {
-          randomAdsIdx = Math.ceil(Math.random() * (ads.length - 1));
+          randomAdsIdx = Math.floor(Math.random() * ads.length);
         } 
         while(playedAdsIdx.includes(randomAdsIdx));
 
@@ -120,7 +120,7 @@ export default class VideoPlayer extends React.Component {
 
         const adItem = new PlaylistItem(
           ads[randomAdsIdx],
-          `https://247-adverts-mediabucket.s3.us-east-2.amazonaws.com/${ads[randomAdsIdx]}/Default/HLS/${ads[randomAdsIdx]}.m3u8`,
+          `https://d1m3tt7ld1wwl8.cloudfront.net/${ads[randomAdsIdx]}/Default/HLS/${ads[randomAdsIdx]}.m3u8`,
           true
         );
 
@@ -179,10 +179,6 @@ export default class VideoPlayer extends React.Component {
 
   componentWillUnmount () {
     
-    (async() => {
-      await this.playbackInstance.unloadAsync()
-      this.playbackInstance = null;
-    })();
 
   }
 
@@ -193,25 +189,29 @@ export default class VideoPlayer extends React.Component {
       this.playbackInstance = null;
     }
 
-    const source = { uri: this.state.playlist[this.state.index].uri };
-    const initialStatus = {
-      shouldPlay: playing,
-      rate: this.state.rate,
-      shouldCorrectPitch: this.state.shouldCorrectPitch,
-      volume: this.state.volume,
-      isMuted: this.state.muted,
-      isLooping: this.state.loopingType
-    };
+    if(this.state.index === 4) {
+      this.props.navigation.navigate('GameStart');
+    } else {
+      const source = { uri: this.state.playlist[this.state.index].uri };
+      const initialStatus = {
+        shouldPlay: playing,
+        rate: this.state.rate,
+        shouldCorrectPitch: this.state.shouldCorrectPitch,
+        volume: this.state.volume,
+        isMuted: this.state.muted,
+        isLooping: this.state.loopingType
+      };
 
-    try {
-      await this._video.loadAsync(source, initialStatus);
-      // this._video.onPlaybackStatusUpdate(this._onPlaybackStatusUpdate);
-      this.playbackInstance = this._video;
-      const status = await this._video.getStatusAsync();
+      try {
+        await this._video.loadAsync(source, initialStatus);
+        // this._video.onPlaybackStatusUpdate(this._onPlaybackStatusUpdate);
+        this.playbackInstance = this._video;
+        const status = await this._video.getStatusAsync();
 
-      this._updateScreenForLoading(false);
-    } catch(err) {
-      console.log(err);
+        this._updateScreenForLoading(false);
+      } catch(err) {
+        console.log(err);
+      }
     }
     
   }
@@ -253,13 +253,10 @@ export default class VideoPlayer extends React.Component {
         shouldCorrectPitch: status.shouldCorrectPitch
       });
       if (status.didJustFinish && !status.isLooping) {
-        if(this.state.index === 3) {
-          console.log(this.props.navigation);
-          this.props.navigation.navigate('GameStart');
-        } else {
-          this._advanceIndex();
-          this._updatePlaybackInstanceForIndex(true);
-        }
+        
+        this._advanceIndex();
+        this._updatePlaybackInstanceForIndex(true);
+
       }
     } else {
       if (status.error) {
@@ -285,16 +282,6 @@ export default class VideoPlayer extends React.Component {
 
   _getMMSSFromMillis(millis) {
     const totalSeconds = millis / 1000;
-    const seconds = Math.floor(totalSeconds % 60);
-    const minutes = Math.floor(totalSeconds / 60);
-
-    // const padWithZero = number => {
-    //   const string = number.toString();
-    //   if (number < 10) {
-    //     return "0" + string;
-    //   }
-    //   return string;
-    // };
     return totalSeconds;
   }
 

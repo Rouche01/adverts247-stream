@@ -64,4 +64,12 @@ export default {
         iconFamily: 'Ionicons',
         icon: 'md-snow'
     },
+    "50d": {
+        iconFamily: 'Fontisto',
+        icon: 'fog'
+    },
+    "50n": {
+        iconFamily: 'Fontisto',
+        icon: 'fog'
+    }
 }

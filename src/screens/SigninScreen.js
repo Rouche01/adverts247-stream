@@ -1,8 +1,9 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, StatusBar } from 'react-native';
 import { Button } from 'react-native-elements';
 import CustomInput from '../components/CustomInput';
 import { Context as DriverContext } from '../context/DriverContext';
+import useNavigateAfterLogin from '../hooks/useNavigateAfterLogin';
 
 
 const SigninScreen = ({ navigation }) => {
@@ -11,6 +12,7 @@ const SigninScreen = ({ navigation }) => {
     const [ password, setPassword] = useState('');
 
     const { state: { loading, user }, signinDriver, getUser} = useContext(DriverContext);
+    const [ signinAndNavigate ] = useNavigateAfterLogin();
 
     useEffect(() => {
 
@@ -18,10 +20,23 @@ const SigninScreen = ({ navigation }) => {
         
     }, [user])
 
+    const signIn = () => {
+        const data = {
+            email: email, 
+            password: password
+        }
+        signinAndNavigate(signinDriver, data);
+    }
+
     return (
         <ImageBackground style={styles.backgroundStyle} 
             source={require('../../assets/landingBackground.png')}
         >
+            <StatusBar 
+                barStyle="light-content"
+                backgroundColor="rgba(0,0,0,0.2)"
+                translucent={true}
+            />
             <View style={styles.signinContainer}>
                 <Text style={styles.headingText}>Sign In Driver</Text>
                 <CustomInput 
@@ -40,7 +55,7 @@ const SigninScreen = ({ navigation }) => {
                     secure={true}
                 />
                 <Button
-                    onPress={() => signinDriver({email: email, password: password}, getUser)}
+                    onPress={signIn}
                     loading={loading}
                     title="Sign In"
                     containerStyle={{ borderRadius: 60, width: '50%', alignSelf: 'center' }}

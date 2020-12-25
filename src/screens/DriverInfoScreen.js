@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Image, ImageBackground, Text, StatusBar, Dimensions } from 'react-native';
-import { FontAwesome5, Ionicons } from '@expo/vector-icons';
+import { FontAwesome5, Ionicons, Fontisto } from '@expo/vector-icons';
 import Animated from 'react-native-reanimated';
 import useAnimation from '../hooks/useAnimation';
 import weatherIconDictionary from '../utils/weatherIconDictionary';
@@ -80,6 +80,23 @@ const DriverInfoScreen = ({ navigation }) => {
         }
 
     }, [driverImage, driverFirstName]);
+
+
+    const resolveWeatherIcon = () => {
+        if(weatherIconDictionary[weatherData.icon].iconFamily === 'FontAwesome5') {
+            return (
+                <FontAwesome5 name={weatherIconDictionary[weatherData.icon].icon} size={48} color="white" /> 
+            );
+        } else if (weatherIconDictionary[weatherData.icon].iconFamily === 'Ionicons') {
+            return (
+                <Ionicons name={weatherIconDictionary[weatherData.icon].icon} size={48} color="white" />
+            );
+        } else if(weatherIconDictionary[weatherData.icon].iconFamily === 'Fontisto') {
+            return (
+                <Fontisto name={weatherIconDictionary[weatherData.icon].icon} size={48} color="white" />
+            )
+        }
+    }
 
 
     if(!driverImage) {
@@ -235,14 +252,7 @@ const DriverInfoScreen = ({ navigation }) => {
                     <Text style={styles.area}>{area}</Text>
                     <Text style={styles.dateTime}>{date}</Text>
                     <View style={styles.weatherDisplay}>
-                        { weatherIconDictionary[weatherData.icon].iconFamily === 'FontAwesome5' ?
-                            <FontAwesome5 name={weatherIconDictionary[weatherData.icon].icon} 
-                                size={48} color="white" 
-                            /> :
-                            <Ionicons name={weatherIconDictionary[weatherData.icon].icon} 
-                                size={48} color="white" 
-                            />
-                        }
+                        {resolveWeatherIcon()}
                         <Text style={styles.temperature}>{weatherData.temp}°</Text>
                     </View>
                     <View style={styles.weatherUpdate}>

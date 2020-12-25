@@ -1,16 +1,18 @@
 import React, { useContext, useEffect } from 'react';
 import { ImageBackground, StyleSheet, StatusBar, ActivityIndicator } from 'react-native';
 import { Context as DriverContext } from '../context/DriverContext';
+import useNavigateAfterLogin from '../hooks/useNavigateAfterLogin';
 
 
 
 const PreAuthScreen = () => {
     
-    const { tryLocalSignin, getUser } = useContext(DriverContext);
+    const { tryLocalSignin } = useContext(DriverContext);
+    const [ signinAndNavigate ] = useNavigateAfterLogin();
 
     useEffect(() => {
 
-        tryLocalSignin(getUser);
+        signinAndNavigate(tryLocalSignin);
 
     }, [])
 

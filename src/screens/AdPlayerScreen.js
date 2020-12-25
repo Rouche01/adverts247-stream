@@ -23,7 +23,7 @@ const SCREEN_HEIGHT = Dimensions.get('screen').height;
 
 const AdPlayerScreen = ({ navigation }) => {
 
-    const [ driverInfo, setDriverInfo ] = useState(null);
+    const [ driverInfo, setDriverInfo ] = useState('');
     const [ mute, setMute ] = useState(false);
     const [ showVolSlider, setShowVolSlider ] = useState(false);
     const [ showBrightnessSlider, setShowBrightnessSlider ] = useState(false);
@@ -42,9 +42,10 @@ const AdPlayerScreen = ({ navigation }) => {
 
 
     useEffect(() => {
-
+        
         getEntertainContent();
         getAdContent();
+        console.log(user, 20);
 
         (async() => {
             let deviceBrightness = await Brightness.getBrightnessAsync();
@@ -71,7 +72,7 @@ const AdPlayerScreen = ({ navigation }) => {
     useEffect(() => {
 
         if(user) {
-            setDriverInfo(user);
+            setDriverInfo(user.profilePhoto);
         }
 
     }, [user]);
@@ -217,7 +218,9 @@ const AdPlayerScreen = ({ navigation }) => {
                     </View>
                     <View style={styles.driverInfo}>
                         <Image 
-                            source={{ uri: driverInfo.profilePhoto }}
+                            source={ 
+                                driverInfo ? { uri: driverInfo } : require('../../assets/avatar-placeholder.png')
+                            }
                             style={styles.driverImg}
                         />
                         {/* <Text>{driverInfo.name}</Text> */}

@@ -1,21 +1,171 @@
-import React from 'react';
-import { StyleSheet, View, Text, StatusBar, Image } from 'react-native'
+import React, { useContext, useEffect, useState } from 'react';
+import { StyleSheet, View, Text, StatusBar, Image, TouchableOpacity } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
+import { Context as TriviaContext } from '../context/triviaContext';
+import { Context as RiderContext } from '../context/riderContext';
 
 
-const OptionBox = ({ optionText }) => {
+const OptionBox = ({ optionText, optionPress }) => {
     return (
-        <LinearGradient
-            colors={['#A7A7A7', '#707070']}
-            style={styles.gradientWrapper}
+        <TouchableOpacity 
+            style={styles.buttonWrapper}
+            onPress={optionPress}
         >
-            <Text style={styles.optionText}>{optionText}</Text>
-        </LinearGradient>
+            <LinearGradient 
+                colors={['#A7A7A7', '#707070']}
+                style={styles.gradientWrapper}
+            >
+                <Text style={styles.optionText}>{optionText}</Text>
+            </LinearGradient>
+        </TouchableOpacity>
     )
 }
 
 
-const TriviaQuestionScreen = () => {
+const TriviaQuestionScreen = ({ navigation }) => {
+
+    const { 
+        state: { quizzes, answeredQuiz }, 
+        getTriviaQuiz, 
+        saveAnsweredQuiz,
+        setCurrentTriviaSession, 
+    } = useContext(TriviaContext);
+
+    const { state: { riderExist, rider }, createTriviaSession } = useContext(RiderContext);
+    
+    const [ questionObj, setQuestionObj ] = useState({
+        question: '',
+        options: [],
+        quizImgUri: '',
+        answer: '',
+        points: 2
+    });
+    const [ triviaCounter, setTriviaCounter ] = useState(60);
+    const [ triviaSession, setTriviaSession ] = useState({
+        totalPoints: 0,
+        questions: 0,
+        answeredCorrectly: 0
+    });
+    
+
+
+    useEffect(() => {
+
+        getTriviaQuiz();
+
+    }, []);
+
+    useEffect(() => {
+
+        if(triviaCounter === '00') {
+
+            setCurrentTriviaSession(triviaSession);
+            if(riderExist) {
+                const { _id } = rider;
+                const { totalPoints, questions, answeredCorrectly } = triviaSession;
+                createTriviaSession({ userId: _id, totalPoints, questions, answeredCorrectly });
+                navigation.navigate('TriviaResult');
+            } else {
+                navigation.navigate('RiderInfo', { triviaSession });
+            }
+            // console.log('works');
+        } else {
+
+            let newCounter = triviaCounter - 1;
+
+            if(newCounter < 10) {
+                newCounter = `0${newCounter}`;
+            }
+
+            setTimeout(() => {
+                setTriviaCounter(newCounter);
+            }, 1000);
+        }
+
+    }, [triviaCounter]);
+
+    const shuffleQuizOptions = (optionsArr) => {
+        const shuffledArray = [];
+        const pickedOptsIdx = [];
+        let randomIdx;
+
+        for (let i = 0; i < optionsArr.length; i++) {
+            do {
+                randomIdx = Math.floor(Math.random() * optionsArr.length);
+            } while(pickedOptsIdx.includes(randomIdx))
+    
+            let selectedOpt = optionsArr[randomIdx];
+            pickedOptsIdx.push(randomIdx);
+            shuffledArray.push(selectedOpt);
+        }
+
+        return shuffledArray;
+    }
+
+    const setQuestion = () => {
+        let answeredQuestionIdx = answeredQuiz
+
+        if(answeredQuiz.length === quizzes.length) {
+            answeredQuestionIdx = []
+        }
+
+        let randomIdx = Math.floor(Math.random() * quizzes.length);
+
+        while(answeredQuestionIdx.includes(randomIdx)){
+            randomIdx = Math.floor(Math.random() * quizzes.length);
+        }
+
+        answeredQuestionIdx.push(randomIdx);
+        saveAnsweredQuiz(answeredQuestionIdx);
+        
+        const { question, quizImgUri, options, answer, points } = quizzes[randomIdx];
+        console.log(options);
+        const shuffledOptions = shuffleQuizOptions(options);
+
+        setQuestionObj({
+            question,
+            options: shuffledOptions,
+            answer,
+            quizImgUri,
+            points
+        });
+    }
+
+    useEffect(() => {
+
+        if(quizzes.length > 0) {
+            setQuestion();
+        }
+
+    }, [quizzes]);
+
+    const goToNextQuestion = (optionVal) => {
+        console.log(optionVal);
+        if(optionVal === questionObj.answer) {
+            setTriviaSession({
+                totalPoints: triviaSession.totalPoints + questionObj.points,
+                questions: triviaSession.questions + 1,
+                answeredCorrectly: triviaSession.answeredCorrectly + 1
+            });
+        } else {
+            setTriviaSession({
+                ...triviaSession,
+                questions: triviaSession.questions + 1,
+            });
+        }
+
+        setQuestion();
+    }
+
+
+    if(questionObj.question.length === 0) {
+        return (
+            <View style={{ backgroundColor: '#262525', flex: 1 }}>
+
+            </View>
+        )
+    }
+
     return (
         <View style={styles.container}>
             <StatusBar 
@@ -24,26 +174,36 @@ const TriviaQuestionScreen = () => {
                 backgroundColor="rgba(0, 0, 0, 0.2)"
             />
             <View style={styles.header}>
-                <Text style={styles.headerTimer}>55</Text>
+                <Text style={styles.headerTimer}>{triviaCounter}</Text>
                 <Text style={styles.headerTitle}>TRIVIA</Text>
             </View>
             <View style={styles.questionContainer}>
                 <View style={styles.imgContainer}>
-                    <Image 
-                        source={require('../../assets/WizKid.jpg')}
+                    <Image
+                        source={{ uri: questionObj.quizImgUri }}
                         style={styles.quizStyle}
                         resizeMode="cover"
                     />
                 </View>
                 <View style={styles.quizAndOptions}>
-                    <Text style={styles.triviaQuestion}>Which of these is the title of his song?</Text>
+                    <Text style={styles.triviaQuestion}>{questionObj.question}</Text>
                     <View style={styles.optionSet1}>
-                        <OptionBox optionText="Ojuelegba" />
-                        <OptionBox optionText="Skeletun" />
+                        { questionObj.options.slice(0, 2).map(option => {
+                            return <OptionBox 
+                                key={option} 
+                                optionText={option} 
+                                optionPress={() => goToNextQuestion(option)} 
+                            />
+                        })}
                     </View>
                     <View style={styles.optionSet2}>
-                        <OptionBox optionText="Ololufe" />
-                        <OptionBox optionText="IF" />
+                        { questionObj.options.slice(2).map(option => {
+                            return <OptionBox 
+                                key={option} 
+                                optionText={option} 
+                                optionPress={() => goToNextQuestion(option)} 
+                            />
+                        })}
                     </View>
                 </View>
             </View>
@@ -84,11 +244,12 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         paddingVertical: 20,
         paddingHorizontal: 30,
-        flexDirection: 'row'
+        flexDirection: 'row',
+        alignItems: 'center'
     },
     quizStyle: {
-        width: 180, 
-        height: 220,
+        width: 200, 
+        height: 250,
         borderRadius: 10,
     },
     quizAndOptions: {
@@ -112,8 +273,10 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between'
     },
-    gradientWrapper: {
+    buttonWrapper: {
         width: '48%',
+    },
+    gradientWrapper: {
         padding: 15,
         borderRadius: 7
     },

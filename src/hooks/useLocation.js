@@ -9,21 +9,39 @@ export default useLocation = () => {
     useEffect(() => {
         ( async() => {
 
-            const { status } = await Location.requestPermissionsAsync();
-            if(status !== 'granted') {
-                setErrorMsg('Permission to access location was denied');
+            try {
+                const { status } = await Location.requestPermissionsAsync();
+                if(status !== 'granted') {
+                    setErrorMsg(
+                        'For the app to work properly, we will need your permission to location services'
+                    );
+                    const defaultLatLong = { latitude: 6.4531, longitude: 3.3958 };
+                    setLatLongVal(defaultLatLong);
+                    const location = await Location.reverseGeocodeAsync(defaultLatLong);
+                    setLocation(location[0]);
+                    
+                } else {
+
+                    const locationGeocode = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High});
+                    const latLong = {
+                        latitude: locationGeocode.coords.latitude,
+                        longitude: locationGeocode.coords.longitude
+                    }
+
+                    setLatLongVal(latLong);
+
+                    const location = await Location.reverseGeocodeAsync(latLong);
+                    console.log(location);
+                    setLocation(location[0]);
+
+                }
+            } catch(err) {
+                console.log(err, 2);
+                const defaultLatLong = { latitude: 6.4531, longitude: 3.3958 };
+                setLatLongVal(defaultLatLong);
+                const location = await Location.reverseGeocodeAsync(defaultLatLong);
+                setLocation(location[0]);
             }
-
-            const locationGeocode = await Location.getCurrentPositionAsync({});
-            const latLong = {
-                latitude: locationGeocode.coords.latitude,
-                longitude: locationGeocode.coords.longitude
-            }
-
-            setLatLongVal(latLong);
-
-            const location = await Location.reverseGeocodeAsync(latLong);
-            setLocation(location[0]);
 
         })()
     }, []);

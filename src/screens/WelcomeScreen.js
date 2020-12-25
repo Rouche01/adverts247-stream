@@ -4,7 +4,12 @@ import { Context as DriverContext } from '../context/DriverContext';
 import useLocation from '../hooks/useLocation';
 import useDate from '../hooks/useDate';
 import useWeatherData from '../hooks/useWeatherData';
-import * as Brightness from 'expo-brightness';
+import useStreamingStatus from '../hooks/useStreamingStatus';
+import { 
+    checkBrightnessPermission, 
+    checkLocationPermission, 
+    checkSystemBrightnessPermission 
+} from '../utils/userPermissions';
 
 
 const WelcomeScreen = ({ navigation }) => {
@@ -12,21 +17,33 @@ const WelcomeScreen = ({ navigation }) => {
     const { state: { user } } = useContext(DriverContext);
 
     const [ location, errorMsg, latLongVal ] = useLocation();
+    // const [ streamStatus ] = useStreamingStatus();
     const [ dateString ] = useDate();
     const [ weatherData ] = useWeatherData(latLongVal);
 
-    const [ errorMessage, setErrorMessage ] = useState(null);
 
+
+    // useEffect(() => {
+
+    //     if(streamStatus === "off") {
+    //         console.log(streamStatus);
+    //         navigation.navigate('NoActivity');
+    //     }
+
+    // }, [streamStatus]);
 
     useEffect(() => {
+        
         (async() => {
-            const { status } = await Brightness.requestPermissionsAsync();
-            console.log(status);
-            if(status !== 'granted') {
-                setErrorMessage('Permission is needed to access your phone settings')
+
+            const locationPermission = await checkLocationPermission();
+
+            if (!locationPermission) {
+                navigation.navigate('PermissionGateway');
             }
         })();
-    })
+
+    }, []);
 
     useEffect(() => {
 
@@ -40,7 +57,7 @@ const WelcomeScreen = ({ navigation }) => {
     useEffect(() => {
 
         if(user && location && weatherData) {
-            console.log(location);
+            console.log(location, weatherData);
             setTimeout(() => {
                 navigation.navigate('DriverInfo', { user, location, dateString, weatherData });
             }, 1500)

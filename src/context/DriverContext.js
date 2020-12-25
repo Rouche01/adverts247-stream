@@ -13,7 +13,9 @@ const driverReducer = (state, action) => {
         case 'get_user':
             return { ...state, user: action.payload.user };
         case 'set_errors':
-            return { ...state, error: action.payload }
+            return { ...state, error: action.payload };
+        case 'signout':
+            return { ...state, token: null, user: null, error: '' }
         default:
             return state;
     }
@@ -40,7 +42,7 @@ const signinDriver = (dispatch) => async(data, callback) => {
         }
         dispatch({ type: 'set_loading', payload: false });
 
-        customNavigate('Welcome');
+        // customNavigate('Welcome');
 
     } catch(error) {
 
@@ -67,7 +69,7 @@ const tryLocalSignin = (dispatch) => async(callback) => {
                 type: 'signin',
                 payload: token
             })
-            customNavigate('Welcome');
+            // customNavigate('Welcome');
 
             if(callback) {
                 callback();
@@ -102,14 +104,23 @@ const getUser = (dispatch) => async() => {
     } catch(error) {
         dispatch({
             type: 'set_errors',
-            payload: error
+            payload: error.message
         })
     }
 }
 
 
+const signoutDriver = dispatch => async() => {
+    await AsyncStorage.removeItem('token');
+    dispatch({
+        type: 'signout'
+    });
+    customNavigate('Signin');
+}
+
+
 export const { Context, Provider } = createDataContext(
     driverReducer,
-    { signinDriver, tryLocalSignin, getUser },
+    { signinDriver, tryLocalSignin, getUser, signoutDriver },
     { token: null, loading: false, error: '', user: null }
 )
