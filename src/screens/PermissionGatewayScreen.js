@@ -5,6 +5,7 @@ import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import {  getLocationPermission } from '../utils/userPermissions';
 import { Context as DriverContext } from '../context/DriverContext';
+import { useKeepAwake } from 'expo-keep-awake';
 
 
 const PermissionGatewayScreen = ({ navigation }) => {
@@ -14,6 +15,8 @@ const PermissionGatewayScreen = ({ navigation }) => {
     // const [ systemBrightnessPermit, setSystemBrightnessPermit ] = useState('denied');
 
     const { state: { user } } = useContext(DriverContext);
+
+    useKeepAwake();
 
     useEffect(() => {
         if(locationPermit === 'granted') {

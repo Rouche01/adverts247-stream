@@ -2,6 +2,7 @@ import React, { useContext, useEffect } from 'react';
 import { ImageBackground, StyleSheet, StatusBar, ActivityIndicator } from 'react-native';
 import { Context as DriverContext } from '../context/DriverContext';
 import useNavigateAfterLogin from '../hooks/useNavigateAfterLogin';
+import { useKeepAwake } from 'expo-keep-awake';
 
 
 
@@ -16,6 +17,7 @@ const PreAuthScreen = () => {
 
     }, [])
 
+    useKeepAwake();
 
     useEffect(() => {
         // console.log(error);

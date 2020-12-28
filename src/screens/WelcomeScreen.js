@@ -8,6 +8,7 @@ import useWeatherData from '../hooks/useWeatherData';
 import useStreamingStatus from '../hooks/useStreamingStatus';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { checkLocationPermission } from '../utils/userPermissions';
+import { useKeepAwake } from 'expo-keep-awake';
 
 
 const WelcomeScreen = ({ navigation }) => {
@@ -20,6 +21,7 @@ const WelcomeScreen = ({ navigation }) => {
     const [ dateString ] = useDate();
     const [ weatherData ] = useWeatherData(latLongVal);
 
+    useKeepAwake();
 
     useEffect(() => {
 

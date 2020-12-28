@@ -4,12 +4,15 @@ import { Entypo } from '@expo/vector-icons';
 import useStreamingStatus from '../hooks/useStreamingStatus';
 import useClearHistory from '../hooks/useClearHistory';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { useKeepAwake } from 'expo-keep-awake';
 
 
 const GameStartScreen = ({ navigation }) => {
 
     const [ streamStatus ] = useStreamingStatus();
     const [ clearHistory ] = useClearHistory();
+
+    useKeepAwake();
 
     useEffect(() => {
 

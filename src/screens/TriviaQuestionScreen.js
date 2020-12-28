@@ -6,6 +6,7 @@ import { Context as RiderContext } from '../context/riderContext';
 import useStreamingStatus from '../hooks/useStreamingStatus';
 import useClearHistory from '../hooks/useClearHistory';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { useKeepAwake } from 'expo-keep-awake';
 
 
 const OptionBox = ({ optionText, optionPress }) => {
@@ -49,8 +50,9 @@ const TriviaQuestionScreen = ({ navigation }) => {
         questions: 0,
         answeredCorrectly: 0
     });
-    
 
+    useKeepAwake();
+    
     const [ streamStatus ] = useStreamingStatus();
     const [ clearHistory ] = useClearHistory();
 

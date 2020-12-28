@@ -5,6 +5,7 @@ import { Context as TriviaContext } from '../context/triviaContext';
 import useStreamingStatus from '../hooks/useStreamingStatus';
 import useClearHistory from '../hooks/useClearHistory';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { useKeepAwake } from 'expo-keep-awake';
 
 
 const TriviaResultScreen = ({ navigation }) => {
@@ -16,6 +17,8 @@ const TriviaResultScreen = ({ navigation }) => {
 
     const [ streamStatus ] = useStreamingStatus();
     const [ clearHistory ] = useClearHistory();
+
+    useKeepAwake();
 
     useEffect(() => {
 

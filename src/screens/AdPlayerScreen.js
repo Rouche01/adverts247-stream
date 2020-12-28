@@ -18,6 +18,7 @@ import { Context as VodContentContext } from '../context/vodContentContext';
 import useStreamingStatus from '../hooks/useStreamingStatus';
 import useClearHistory from '../hooks/useClearHistory';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { useKeepAwake } from 'expo-keep-awake';
 
 
 const SCREEN_WIDTH = Dimensions.get('screen').width;
@@ -36,6 +37,8 @@ const AdPlayerScreen = ({ navigation }) => {
 
     const [ streamStatus ] = useStreamingStatus();
     const [ clearHistory ] = useClearHistory();
+
+    useKeepAwake();
 
     useEffect(() => {
 

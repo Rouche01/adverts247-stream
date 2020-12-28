@@ -5,6 +5,7 @@ import CustomInput from '../components/CustomInput';
 import { Context as DriverContext } from '../context/DriverContext';
 import useNavigateAfterLogin from '../hooks/useNavigateAfterLogin';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { useKeepAwake } from 'expo-keep-awake';
 
 
 const SigninScreen = () => {
@@ -19,6 +20,7 @@ const SigninScreen = () => {
     const { state: { loading }, signinDriver, clearError } = useContext(DriverContext);
     const [ signinAndNavigate, error ] = useNavigateAfterLogin();
 
+    useKeepAwake();
 
     useEffect(() => {
         // console.log(error);

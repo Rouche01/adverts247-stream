@@ -6,6 +6,7 @@ import { Context as RiderContext } from '../context/riderContext';
 import useStreamingStatus from '../hooks/useStreamingStatus';
 import useClearHistory from '../hooks/useClearHistory';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { useKeepAwake } from 'expo-keep-awake';
 
 
 const RiderInfoScreen = ({ navigation }) => {
@@ -28,6 +29,8 @@ const RiderInfoScreen = ({ navigation }) => {
     const [ streamStatus ] = useStreamingStatus();
 
     const didCancel = useRef(null);
+
+    useKeepAwake();
 
     useEffect(() => {
 

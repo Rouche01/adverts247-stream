@@ -5,6 +5,7 @@ import { Context as DriverContext } from '../context/DriverContext';
 import useStreamingStatus from '../hooks/useStreamingStatus';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 import { checkLocationPermission } from '../utils/userPermissions';
+import { useKeepAwake } from 'expo-keep-awake';
 
 
 const NoActivityScreen = ({ navigation }) => {
@@ -19,6 +20,8 @@ const NoActivityScreen = ({ navigation }) => {
             navigation.navigate('Welcome');
         }
     }, [streamStatus])
+
+    useKeepAwake();
 
     useEffect(() => {
         

@@ -7,6 +7,7 @@ import weatherIconDictionary from '../utils/weatherIconDictionary';
 import useStreamingStatus from '../hooks/useStreamingStatus';
 import useClearHistory from '../hooks/useClearHistory';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { useKeepAwake } from 'expo-keep-awake';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 const DEVICE_HEIGHT = Dimensions.get('window').height;
@@ -28,6 +29,7 @@ const DriverInfoScreen = ({ navigation }) => {
     const [ lastSeqeunceTxtLayout, setLastSequenceTxtLayout ] = useState({ width: 0, height: 0 });
     const [ infoTextWidth, setInfoTextWidth ] = useState(0);
 
+    useKeepAwake();
 
     const [ streamStatus ] = useStreamingStatus();
     const [ clearHistory ] = useClearHistory();
