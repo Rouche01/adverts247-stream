@@ -1,7 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View, Text, StatusBar } from 'react-native';
 import TriviaInfoLoader from '../components/TriviaInfoLoader';
 import { FontAwesome5 } from '@expo/vector-icons';
+import useStreamingStatus from '../hooks/useStreamingStatus';
+import useClearHistory from '../hooks/useClearHistory';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 
 const GameIntroScreen = ({ navigation }) => {
@@ -9,11 +12,32 @@ const GameIntroScreen = ({ navigation }) => {
     const [ stage, setStage ] = useState(0);
     const [ instruction, setInstruction ] = useState("Answer as many questions correctly before time runs out");
 
+    const [ clearHistory ] = useClearHistory();
+    const [ streamStatus ] = useStreamingStatus();
+
+    const navigationTimer = useRef(null);
+
     useEffect(() => {
 
-        setTimeout(() => {
+        if(streamStatus === "off") {
+            // console.log(streamStatus);
+            clearHistory();
+            navigation.navigate('NoActivity');
+        }
+
+    }, [streamStatus]);
+
+
+    useEffect(() => {
+
+        let stageTimer = setTimeout(() => {
             setStage(1);
-        }, 4000)
+        }, 4000);
+
+        return () => {
+            clearTimeout(stageTimer);
+            clearTimeout(navigationTimer.current);
+        }
 
     }, []);
 
@@ -21,9 +45,9 @@ const GameIntroScreen = ({ navigation }) => {
 
         if(stage === 1) {
             setInstruction("Today's top score prize is N50,000 from GTBank")
-            setTimeout(() => {
+            navigationTimer.current = setTimeout(() => {
                 navigation.navigate('TriviaQuestion');
-            }, 4000)
+            }, 4000);
         }
 
     }, [stage])
@@ -38,7 +62,7 @@ const GameIntroScreen = ({ navigation }) => {
             <View style={styles.instructionBox}>
                 { stage === 0 ? 
                     <TriviaInfoLoader /> : 
-                    <FontAwesome5 style={styles.iconStyle} name="gift" size={44} color="#F1040E" />
+                    <FontAwesome5 style={styles.iconStyle} name="gift" size={hp('15%')} color="#F1040E" />
                 }
                 <Text style={styles.instructions}>
                     {instruction}
@@ -59,22 +83,22 @@ const styles = StyleSheet.create({
     },
     headerText: {
         color: '#fff',
-        fontSize: 36,
+        fontSize: hp('8.8%'),
         fontWeight: 'bold',
         textAlign: 'center',
-        marginBottom: 20
+        marginBottom: hp('6%')
     },
     instructionBox: {
         width: '60%',
         backgroundColor: '#1D1B1B',
-        paddingHorizontal: 20,
-        paddingVertical: 28,
-        borderRadius: 20
+        paddingHorizontal: wp('2.6%'),
+        paddingVertical: hp('7%'),
+        borderRadius: 20,
+        elevation: 10
     },
     instructions: {
         color: '#fff',
-        fontSize: 26,
-        fontWeight: 'bold',
+        fontSize: hp('6.5%'),
         textAlign: 'center'
     },
     iconStyle: {

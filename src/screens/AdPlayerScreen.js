@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { 
     StyleSheet, 
     View, 
@@ -12,10 +12,12 @@ import VideoPlayer from '../components/VideoPlayer';
 import { MaterialIcons } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Context as DriverContext } from '../context/DriverContext';
-// import LoaderAnimation from '../components/LoaderAnimation';
 import Slider from '@react-native-community/slider';
 import * as Brightness from 'expo-brightness';
 import { Context as VodContentContext } from '../context/vodContentContext';
+import useStreamingStatus from '../hooks/useStreamingStatus';
+import useClearHistory from '../hooks/useClearHistory';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 
 const SCREEN_WIDTH = Dimensions.get('screen').width;
@@ -32,6 +34,20 @@ const AdPlayerScreen = ({ navigation }) => {
     const { state: { user } } = useContext(DriverContext);
 
 
+    const [ streamStatus ] = useStreamingStatus();
+    const [ clearHistory ] = useClearHistory();
+
+    useEffect(() => {
+
+        if(streamStatus === "off") {
+            // console.log(streamStatus);
+            clearHistory();
+            navigation.navigate('NoActivity');
+        }
+
+    }, [streamStatus]);
+
+
     const { 
         state: { mediaList, error, entertainPlayedIdx, adsPlayedIdx }, 
         getEntertainContent, 
@@ -41,30 +57,47 @@ const AdPlayerScreen = ({ navigation }) => {
     } = useContext(VodContentContext);
 
 
+    const didCancel = useRef(null);
+    const volumeTimer = useRef(null);
+    const brightnessTimer = useRef(null);
+
+    didCancel.current = false;
+
+
     useEffect(() => {
         
         getEntertainContent();
         getAdContent();
-        console.log(user, 20);
+        // console.log(user, 20);
 
         (async() => {
             let deviceBrightness = await Brightness.getBrightnessAsync();
-            deviceBrightness = deviceBrightness.toFixed(1)
-            setBrightnessValue(+deviceBrightness);
+            if(!didCancel.current) {
+                deviceBrightness = deviceBrightness.toFixed(1)
+                setBrightnessValue(+deviceBrightness);
+            }
         })();
+
+        return () => {
+            didCancel.current = true;
+            clearTimeout(volumeTimer.current);
+            clearTimeout(brightnessTimer.current);
+        }
 
     }, []);
 
     useEffect(() => {
 
-        console.log(error)
+        // console.log(error)
 
     }, [error]);
 
     useEffect(() => {
 
         (async() => {
-            await Brightness.setBrightnessAsync(brightnessValue);
+            if(!didCancel.current) {
+                await Brightness.setBrightnessAsync(brightnessValue);
+            }
         })();
 
     }, [brightnessValue])
@@ -97,7 +130,7 @@ const AdPlayerScreen = ({ navigation }) => {
 
     const onSliderRelease = (val) => {
         setVolumeValue(val);
-        setTimeout(() => {
+        volumeTimer.current = setTimeout(() => {
             setShowVolSlider(false);
         }, 1000)
     }
@@ -115,7 +148,7 @@ const AdPlayerScreen = ({ navigation }) => {
     const onBrightnessSliderRelease = (val) => {
         
         setBrightnessValue(val);
-        setTimeout(() => {
+        brightnessTimer.current = setTimeout(() => {
             setShowBrightnessSlider(false);
         }, 1000);
 
@@ -139,7 +172,7 @@ const AdPlayerScreen = ({ navigation }) => {
             />
             <VideoPlayer 
                 videoWidth={SCREEN_WIDTH}
-                videoHeight={SCREEN_HEIGHT - (SCREEN_HEIGHT * 0.15)}
+                videoHeight={SCREEN_HEIGHT - (SCREEN_HEIGHT * 0.13)}
                 muteState={mute}
                 volumeState={volumeValue}
                 mediaBucket={mediaList}
@@ -173,7 +206,7 @@ const AdPlayerScreen = ({ navigation }) => {
                             >
                                 <MaterialIcons style={styles.ctrlIcon} 
                                     name="brightness-6" 
-                                    size={18} 
+                                    size={hp('3.5%')} 
                                     color="#E6E6E6" 
                                 />
                                 <Text style={styles.ctrlLabel}>Brightness</Text>
@@ -198,7 +231,7 @@ const AdPlayerScreen = ({ navigation }) => {
                                 <FontAwesome5 
                                     style={styles.ctrlIcon} 
                                     name="volume-down" 
-                                    size={18} 
+                                    size={hp('3.5%')} 
                                     color="#E6E6E6" 
                                 />
                                 <Text style={styles.ctrlLabel}>Volume</Text>
@@ -211,7 +244,7 @@ const AdPlayerScreen = ({ navigation }) => {
                             <FontAwesome5 
                                 style={styles.ctrlIcon} 
                                 name="volume-mute" 
-                                size={18} color="#E6E6E6" 
+                                size={hp('3.5%')} color="#E6E6E6" 
                             />
                             <Text style={styles.ctrlLabel}>Mute</Text>
                         </TouchableOpacity>
@@ -245,7 +278,7 @@ const styles = StyleSheet.create({
     },
     settingsBar: {
         width: '100%',
-        height: SCREEN_HEIGHT * 0.15,
+        height: SCREEN_HEIGHT * 0.13,
         position: 'absolute',
         bottom: 0,
         left: 0,
@@ -253,11 +286,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 30
+        paddingHorizontal: wp('3.4%')
     }, 
     logoStyle: {
-        width: 150, 
-        height: 35,
+        width: hp('35%'), 
+        height: hp('25%'),
         // borderColor: '#fff',
         // borderWidth: 2
     },
@@ -269,28 +302,28 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         borderColor: "#E3E3E3",
         borderWidth: 2,
-        paddingVertical: 3,
-        paddingHorizontal: 4,
+        paddingVertical: hp('1%'),
+        paddingHorizontal: wp('1%'),
         borderRadius: 5,
-        marginRight: 50
+        marginRight: wp('7%')
     },
     ctrlWrapper: {
-        marginHorizontal: 14,
+        marginHorizontal: wp('2%'),
         flexDirection: 'column',
         alignItems: 'center'
     },
     ctrlIcon: {
-        marginBottom: 2
+        marginBottom: hp('0.7%')
     },
     ctrlLabel: {
-        fontSize: 8,
+        fontSize: hp('2%'),
         textAlign: 'center',
         color: '#E6E6E6'
     },
     driverImg: {
-        width: 50,
-        height: 50,
-        borderRadius: 25
+        width: hp('11%'),
+        height: hp('11%'),
+        borderRadius: hp('5.5%')
     },
     volumeGroup: {
         flexDirection: 'row',
@@ -303,8 +336,8 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     },  
     sliderStyle: {
-        width: 150,
-        height: 30
+        width: wp('15%'),
+        height: hp('5%')
     }
 });
 

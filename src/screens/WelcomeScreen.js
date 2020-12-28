@@ -1,15 +1,13 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { ImageBackground, Text, Alert, StyleSheet, StatusBar, Image } from 'react-native';
 import { Context as DriverContext } from '../context/DriverContext';
+import useClearHistory from '../hooks/useClearHistory';
 import useLocation from '../hooks/useLocation';
 import useDate from '../hooks/useDate';
 import useWeatherData from '../hooks/useWeatherData';
 import useStreamingStatus from '../hooks/useStreamingStatus';
-import { 
-    checkBrightnessPermission, 
-    checkLocationPermission, 
-    checkSystemBrightnessPermission 
-} from '../utils/userPermissions';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
+import { checkLocationPermission } from '../utils/userPermissions';
 
 
 const WelcomeScreen = ({ navigation }) => {
@@ -17,20 +15,21 @@ const WelcomeScreen = ({ navigation }) => {
     const { state: { user } } = useContext(DriverContext);
 
     const [ location, errorMsg, latLongVal ] = useLocation();
-    // const [ streamStatus ] = useStreamingStatus();
+    const [ streamStatus ] = useStreamingStatus();
+    const [ clearHistory ] = useClearHistory()
     const [ dateString ] = useDate();
     const [ weatherData ] = useWeatherData(latLongVal);
 
 
+    useEffect(() => {
 
-    // useEffect(() => {
+        if(streamStatus === "off") {
+            // console.log(streamStatus);
+            clearHistory();
+            navigation.navigate('NoActivity');
+        }
 
-    //     if(streamStatus === "off") {
-    //         console.log(streamStatus);
-    //         navigation.navigate('NoActivity');
-    //     }
-
-    // }, [streamStatus]);
+    }, [streamStatus]);
 
     useEffect(() => {
         
@@ -54,16 +53,28 @@ const WelcomeScreen = ({ navigation }) => {
     }, [errorMsg])
 
 
+    const navigationTimer = useRef(null);
+
+
     useEffect(() => {
 
         if(user && location && weatherData) {
-            console.log(location, weatherData);
-            setTimeout(() => {
+            // console.log(location, weatherData);
+            navigationTimer.current = setTimeout(() => {
                 navigation.navigate('DriverInfo', { user, location, dateString, weatherData });
-            }, 1500)
+            }, 2500)
         }
 
     }, [user, location, weatherData]);
+
+
+    useEffect(() => {
+
+        return () => {
+            clearTimeout(navigationTimer.current);
+        }
+
+    }, []);
 
 
     return (
@@ -92,11 +103,12 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
     logoStyle: {
-        width: 260, 
-        height: 90,
+        width: wp('30%'), 
+        height: hp('20%'),
     },
     headingStyle: {
-        fontSize: 40,
+        fontFamily: 'Audiowide',
+        fontSize: hp('10%'),
         color: '#fff',
         fontWeight: 'bold',
         marginBottom: 20

@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { Audio, Video } from "expo-av";
 import LoaderAnimation from './LoaderAnimation';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 
 class PlaylistItem {
@@ -16,14 +17,14 @@ class PlaylistItem {
 export default class VideoPlayer extends React.Component {
   constructor(props) {
     super(props);
-    // this.index = 0;
     this.playbackInstance = null;
+    this._isMounted = false;
     this.state = {
-      index: 0,
+      index: 2,
       createdPlaylist: [],
       playlist: [],
       showCountdown: false,
-      toAdCounter: 3,
+      toAdCounter: 5,
       loopingType: false,
       muted: false,
       playbackInstancePosition: 0,
@@ -40,15 +41,19 @@ export default class VideoPlayer extends React.Component {
 
   componentDidMount() {
 
-    Audio.setAudioModeAsync({
-      allowsRecordingIOS: false,
-      staysActiveInBackground: false,
-      interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
-      playsInSilentModeIOS: true,
-      shouldDuckAndroid: true,
-      interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
-      playThroughEarpieceAndroid: false
-    });
+    this._isMounted = true;
+
+    if(this._isMounted) {
+      Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        staysActiveInBackground: false,
+        interruptionModeIOS: Audio.INTERRUPTION_MODE_IOS_DO_NOT_MIX,
+        playsInSilentModeIOS: true,
+        shouldDuckAndroid: true,
+        interruptionModeAndroid: Audio.INTERRUPTION_MODE_ANDROID_DO_NOT_MIX,
+        playThroughEarpieceAndroid: false
+      });
+    }
 
     
   }
@@ -57,16 +62,20 @@ export default class VideoPlayer extends React.Component {
   componentDidUpdate(prevProps, prevState) {
 
       if(this.props.muteState !== prevProps.muteState) {
-        console.log(this.props.muteState);
+        // console.log(this.props.muteState);
         if (this.playbackInstance != null) {
-            this.playbackInstance.setIsMutedAsync(this.props.muteState);
+            if(this._isMounted) {
+              this.playbackInstance.setIsMutedAsync(this.props.muteState);
+            }
         }
       }
       
       if(this.props.volumeState !== prevProps.volumeState) {
-        console.log(this.props.volumeState);
+        // console.log(this.props.volumeState);
         if (this.playbackInstance != null) {
-            this.playbackInstance.setVolumeAsync(this.props.volumeState);
+            if(this._isMounted) {
+              this.playbackInstance.setVolumeAsync(this.props.volumeState);
+            }
         }
       }
 
@@ -75,8 +84,14 @@ export default class VideoPlayer extends React.Component {
 
       if(mediaBucket.videos.length > 0 && mediaBucket.ads.length > 0 && mediaBucket !== prevProps.mediaBucket) {
 
+        // console.log(mediaBucket);
+        // console.log(prevProps.mediaBucket);
+
+        // console.log('how many time')
+
         const { videos, ads } = mediaBucket;
         let playedIdx = this.props.entertainPlayedIdx;
+        let playedAdsIdx = this.props.adsPlayedIdx;
         let createdPlaylist = [];
 
         if((videos.length - playedIdx.length) < 3) {
@@ -104,7 +119,6 @@ export default class VideoPlayer extends React.Component {
 
         }
 
-        let playedAdsIdx = this.props.adsPlayedIdx;
 
         if(ads.length === playedAdsIdx.length) {
           playedAdsIdx = [];
@@ -128,40 +142,46 @@ export default class VideoPlayer extends React.Component {
 
         this.props.savePlayedIdx(playedIdx);
         this.props.savePlayedAdsIdx(playedAdsIdx);
-        console.log(playedIdx, playedAdsIdx);
+        // console.log(playedIdx, playedAdsIdx);
 
 
-        this.setState({
-          playlist: createdPlaylist
-        }, () => {
-          console.log(this.state.playlist);
-        });
+        if(this._isMounted) {
+          this.setState({
+            playlist: createdPlaylist
+          }, () => {
+            // console.log(this.state.playlist);
+          });
+        }
 
       }
 
 
       if(this.state.index === 2 && this.state.playbackInstancePosition > 0) {
 
-        const adPromptTime = this.state.playbackInstanceDuration - 4000;
+        const adPromptTime = this.state.playbackInstanceDuration - 6000;
         // console.log(typeof(this.state.playbackInstancePosition), adPromptTime, this.state.playbackInstanceDuration);
 
-        if(this.state.playbackInstancePosition >= adPromptTime & !this.state.showCountdown) {
+        if(this.state.playbackInstancePosition >= adPromptTime && !this.state.showCountdown) {
 
-          console.log('works');
-          this.setState({
-            showCountdown: true
-          });
+          // console.log('works');
+          if(this._isMounted) {
+            this.setState({
+              showCountdown: true
+            });
+          }
 
           let timesToRun = 0;
           let adCounter = setInterval(() => {
               timesToRun += 1;
-              if(timesToRun === 3) {
+              if(timesToRun === 5) {
                 clearInterval(adCounter);
               }
 
-              this.setState({
-                toAdCounter: this.state.toAdCounter - 1
-              })
+              if(this._isMounted) {
+                this.setState({
+                  toAdCounter: this.state.toAdCounter - 1
+                })
+              }
           }, 1000);
 
         }
@@ -170,15 +190,26 @@ export default class VideoPlayer extends React.Component {
 
       if(this.state.index === 3 && this.state.showCountdown) {
 
-        this.setState({
-          showCountdown: false
-        });
-
+        if(this._isMounted) {
+          this.setState({
+            showCountdown: false
+          });
+  
+        }
       }
   }
 
   componentWillUnmount () {
     
+    this._isMounted = false;
+    const unloadVideoInstance = async() => {
+      if (this.playbackInstance != null) {
+        await this.playbackInstance.unloadAsync();
+        this.playbackInstance = null;
+      }
+    }
+
+    unloadVideoInstance();
 
   }
 
@@ -203,12 +234,16 @@ export default class VideoPlayer extends React.Component {
       };
 
       try {
-        await this._video.loadAsync(source, initialStatus);
+        if(this._isMounted) {
+          await this._video.loadAsync(source, initialStatus);
+        }
         // this._video.onPlaybackStatusUpdate(this._onPlaybackStatusUpdate);
-        this.playbackInstance = this._video;
-        const status = await this._video.getStatusAsync();
+        if(this._isMounted) {
+          this.playbackInstance = this._video;
+          // const status = await this._video.getStatusAsync();
 
-        this._updateScreenForLoading(false);
+          this._updateScreenForLoading(false);
+        }
       } catch(err) {
         console.log(err);
       }
@@ -339,14 +374,14 @@ const styles = StyleSheet.create({
     adCountdown: {
       backgroundColor: '#262525',
       position: 'absolute',
-      bottom: 100,
-      right: 50,
-      paddingHorizontal: 20,
-      paddingVertical: 10
+      bottom: hp('22%'),
+      right: wp('5%'),
+      paddingHorizontal: wp('2%'),
+      paddingVertical: hp('2.5%')
     },
     countdownText: {
       color: '#fff',
-      fontSize: 16
+      fontSize: hp('4.2%')
     }
 });
 

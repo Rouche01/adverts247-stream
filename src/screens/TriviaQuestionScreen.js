@@ -1,8 +1,11 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { StyleSheet, View, Text, StatusBar, Image, TouchableOpacity } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Context as TriviaContext } from '../context/triviaContext';
 import { Context as RiderContext } from '../context/riderContext';
+import useStreamingStatus from '../hooks/useStreamingStatus';
+import useClearHistory from '../hooks/useClearHistory';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 
 const OptionBox = ({ optionText, optionPress }) => {
@@ -48,10 +51,31 @@ const TriviaQuestionScreen = ({ navigation }) => {
     });
     
 
+    const [ streamStatus ] = useStreamingStatus();
+    const [ clearHistory ] = useClearHistory();
+
+    const quizTimer = useRef(null);
+    const didCancel = useRef(null);
 
     useEffect(() => {
 
+        if(streamStatus === "off") {
+            // console.log(streamStatus);
+            clearHistory();
+            navigation.navigate('NoActivity');
+        }
+
+    }, [streamStatus]);
+
+    useEffect(() => {
+
+        didCancel.current = false;
         getTriviaQuiz();
+
+        return () => {
+            clearTimeout(quizTimer.current);
+            didCancel.current = true;
+        }
 
     }, []);
 
@@ -77,7 +101,7 @@ const TriviaQuestionScreen = ({ navigation }) => {
                 newCounter = `0${newCounter}`;
             }
 
-            setTimeout(() => {
+            quizTimer.current = setTimeout(() => {
                 setTriviaCounter(newCounter);
             }, 1000);
         }
@@ -119,7 +143,7 @@ const TriviaQuestionScreen = ({ navigation }) => {
         saveAnsweredQuiz(answeredQuestionIdx);
         
         const { question, quizImgUri, options, answer, points } = quizzes[randomIdx];
-        console.log(options);
+        // console.log(options);
         const shuffledOptions = shuffleQuizOptions(options);
 
         setQuestionObj({
@@ -134,13 +158,15 @@ const TriviaQuestionScreen = ({ navigation }) => {
     useEffect(() => {
 
         if(quizzes.length > 0) {
-            setQuestion();
+            if(!didCancel.current) {
+                setQuestion();
+            }
         }
 
     }, [quizzes]);
 
     const goToNextQuestion = (optionVal) => {
-        console.log(optionVal);
+        // console.log(optionVal);
         if(optionVal === questionObj.answer) {
             setTriviaSession({
                 totalPoints: triviaSession.totalPoints + questionObj.points,
@@ -216,60 +242,62 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#262525',
-        paddingHorizontal: 40
+        paddingHorizontal: wp('5%'),
+        justifyContent: 'center'
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginTop: 30
+        marginTop: hp('2%')
     },
     headerTimer: {
         color: '#fff',
-        fontSize: 24,
+        fontSize: hp('6%'),
         backgroundColor: '#FE0000',
-        paddingVertical: 5,
-        paddingHorizontal: 8,
+        paddingVertical: hp('1.25%'),
+        paddingHorizontal: hp('2%'),
         borderRadius: 7
     },
     headerTitle: {
-        fontSize: 28,
+        fontSize: hp('6.6%'),
         color: '#fff',
         fontWeight: 'bold'
     },
     questionContainer: {
         backgroundColor: '#1D1B1B',
         width: '100%',
-        marginTop: 15,
+        marginTop: hp('5%'),
         borderRadius: 20,
-        paddingVertical: 20,
-        paddingHorizontal: 30,
+        paddingVertical: hp('7%'),
+        paddingHorizontal: wp('3%'),
         flexDirection: 'row',
-        alignItems: 'center'
+        alignItems: 'center',
+        elevation: 10
     },
     quizStyle: {
-        width: 200, 
-        height: 250,
+        width: wp('22%'), 
+        height: hp('60%'),
         borderRadius: 10,
     },
     quizAndOptions: {
-        marginLeft: 25,
+        marginLeft: hp('4.5%'),
         flex: 5
     },
     triviaQuestion: {
         color: '#fff',
-        fontSize: 22
+        fontSize: hp('5.7%')
     },
     imgContainer: {
         flex: 2
     },
     optionSet1: {
-        marginTop: 20,
+        marginTop: hp('5%'),
         flexDirection: 'row',
         justifyContent: 'space-between'
     },  
     optionSet2: {
-        marginTop: 20,
+        marginTop: hp('5%'),
         flexDirection: 'row',
         justifyContent: 'space-between'
     },
@@ -277,11 +305,11 @@ const styles = StyleSheet.create({
         width: '48%',
     },
     gradientWrapper: {
-        padding: 15,
+        padding: hp('3.4%'),
         borderRadius: 7
     },
     optionText: {
-        fontSize: 17,
+        fontSize: hp('4%'),
         textAlign: 'center'
     }
 });

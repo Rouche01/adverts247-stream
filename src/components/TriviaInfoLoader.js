@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { useTimingTransition } from 'react-native-redash/lib/module/v1';
 import Animated, { interpolate } from 'react-native-reanimated';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 
 const TriviaInfoLoader = () => {
@@ -10,8 +11,8 @@ const TriviaInfoLoader = () => {
     const MARGIN = 12
     const vWidth = 204 + MARGIN;
     const vHeight = 204 + MARGIN;
-    const width = 60;
-    const height = 60;
+    const width = hp('15%');
+    const height = hp('15%');
 
     const pathFull = "M159 79.5C159 123.407 123.407 159 79.5 159C35.5934 159 0 123.407 0 79.5C0 35.5934 35.5934 0 79.5 0C123.407 0 159 35.5934 159 79.5Z"
 
@@ -59,7 +60,7 @@ const TriviaInfoLoader = () => {
                     clipRule="evenodd"
                     ref={ref}
                     onLayout={() => {
-                        console.log(ref.current._component.getTotalLength());
+                        // console.log(ref.current._component.getTotalLength());
                         setLength(ref.current._component.getTotalLength());
                     }}
                     strokeDasharray={length}

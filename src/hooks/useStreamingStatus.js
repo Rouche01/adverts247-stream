@@ -8,19 +8,19 @@ export default () => {
     const { state: { streamingStatus, error }, getStreamingStatus } = useContext(StreamingContext);
     const { state: { user } } = useContext(DriverContext);
 
-    const [ streamStatus, setStreamStatus ] = useState('off');
+    const [ streamStatus, setStreamStatus ] = useState('');
 
     const source = adverts247Api.CancelToken.source();
 
     const checkForStreamStatus = async() => {
-        console.log('works');
+        // console.log('works');
         await getStreamingStatus(user._id, source.token);
     }
 
     useEffect(() => {
 
         checkForStreamStatus();
-        console.log(source.token);
+        // console.log(source.token);
 
         const interval = setInterval(checkForStreamStatus, 2500);
 
@@ -34,7 +34,7 @@ export default () => {
     useEffect(() => {
 
         setStreamStatus(streamingStatus);
-        console.log(streamingStatus);
+        // console.log(streamingStatus);
 
     }, [streamingStatus])
 

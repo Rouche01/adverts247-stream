@@ -1,8 +1,11 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Text, StatusBar } from 'react-native';
 import { Button } from 'react-native-elements';
 import CustomInput from '../components/CustomInput';
 import { Context as RiderContext } from '../context/riderContext';
+import useStreamingStatus from '../hooks/useStreamingStatus';
+import useClearHistory from '../hooks/useClearHistory';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 
 const RiderInfoScreen = ({ navigation }) => {
@@ -21,9 +24,40 @@ const RiderInfoScreen = ({ navigation }) => {
         checkRider
     } = useContext(RiderContext);
 
+    const [ clearHistory ] = useClearHistory();
+    const [ streamStatus ] = useStreamingStatus();
+
+    const didCancel = useRef(null);
+
     useEffect(() => {
 
-        console.log(error);
+        if(streamStatus === "off") {
+            // console.log(streamStatus);
+            clearHistory();
+            navigation.navigate('NoActivity');
+        }
+
+    }, [streamStatus]);
+
+    useEffect(() => {
+
+        didCancel.current = false;
+        // console.log(navigation.state.params.triviaSession);
+
+        // const navigationTimer = setTimeout(() => {
+        //     navigation.navigate('AdPlayer');
+        // }, 80000)
+
+        return () => {
+            didCancel.current = true;
+            // clearTimeout(navigationTimer);
+        }
+
+    }, [])
+
+    useEffect(() => {
+
+        // console.log(error);
 
     }, [error]);
 
@@ -74,8 +108,12 @@ const RiderInfoScreen = ({ navigation }) => {
                 phoneNumber,
             };
 
-            await checkRider(riderData, triviaSession);  
-            navigation.navigate('TriviaResult');
+            if(!didCancel.current) {
+                await checkRider(riderData, triviaSession);
+                if(!didCancel.current) {
+                    navigation.navigate('TriviaResult');
+                }
+            }
         }
     }
 
@@ -93,7 +131,10 @@ const RiderInfoScreen = ({ navigation }) => {
                     capitalize="words"
                     autoCorrect={false}
                     value={fullname}
-                    onChange={(value) => setFullname(value)}
+                    onChange={(value) => {
+                        setValidationErrors({ ...validationErrors, fullname: '' })
+                        setFullname(value)
+                    }}
                     validationError={
                         validationErrors.fullname && validationErrors.fullname.length > 0 ? validationErrors.fullname : null
                     }
@@ -103,7 +144,10 @@ const RiderInfoScreen = ({ navigation }) => {
                     capitalize="none"
                     autoCorrect={false}
                     value={riderEmail}
-                    onChange={(value) => setRiderEmail(value)}
+                    onChange={(value) => {
+                        setValidationErrors({ ...validationErrors, riderEmail: '' });
+                        setRiderEmail(value);
+                    }}
                     validationError={
                         validationErrors.riderEmail && validationErrors.riderEmail.length > 0 ? validationErrors.riderEmail : null
                     }
@@ -113,7 +157,10 @@ const RiderInfoScreen = ({ navigation }) => {
                     capitalize="none"
                     autoCorrect={false}
                     value={phoneNumber}
-                    onChange={(value) => setPhoneNumber(value)}
+                    onChange={(value) => {
+                        setValidationErrors({ ...validationErrors, phoneNumber: '' });
+                        setPhoneNumber(value);
+                    }}
                     validationError={
                         validationErrors.phoneNumber && validationErrors.phoneNumber.length > 0 ? validationErrors.phoneNumber : null
                     }
@@ -124,8 +171,8 @@ const RiderInfoScreen = ({ navigation }) => {
                     loading={loading}
                     title="Submit"
                     containerStyle={{ borderRadius: 60, width: '50%', alignSelf: 'center' }}
-                    titleStyle={{ fontSize: 18 }}
-                    buttonStyle={{ padding: 12, backgroundColor: '#fe0000' }}
+                    titleStyle={{ fontSize: hp('4.5%') }}
+                    buttonStyle={{ padding: hp('2%'), backgroundColor: '#fe0000' }}
                 />
             </View>
         </View>
@@ -141,18 +188,19 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
     headerText: {
-        fontSize: 28,
+        fontSize: hp('6%'),
         color: '#fff',
         fontWeight: 'bold',
         textAlign: 'center',
-        marginBottom: 15
+        marginBottom: hp('4%')
     },
     formContainer: {
         backgroundColor: '#1D1B1B',
         width: '55%',
-        paddingHorizontal: 40,
-        paddingVertical: 20,
-        borderRadius: 15
+        paddingHorizontal: wp('4%'),
+        paddingVertical: hp('5%'),
+        borderRadius: 15,
+        elevation: 10
     }
 })
 

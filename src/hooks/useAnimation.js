@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { interpolate, set } from 'react-native-reanimated';
 import { useTimingTransition } from 'react-native-redash/lib/module/v1';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 export default useAnimation = (driverInfoLayout, driverIntroTextLayout, driverImgLayout, driverFavLayout, infoTextWidth, deviceWidth, deviceHeight) => {
 
@@ -11,9 +12,9 @@ export default useAnimation = (driverInfoLayout, driverIntroTextLayout, driverIm
     const [ logoOpacity, setLogoOpacity ] = useState(null);
     const [ opacity, setOpacity ] = useState(null);
     const [ introTextScale, setIntroTextScale ] = useState(null);
-    const [ introTextPosition, setIntroTextPosition ] = useState(null);
-    const [ introTextTop, setIntroTextTop ] = useState(null);
-    const [ introTextLeft, setIntroTextLeft ] = useState(null);
+    const [ introTextOpacity, setIntroTextOpacity ] = useState(null);
+    const [ lastSequenceTxtOpacity, setLastSequenceTxtOpacity ] = useState(null);
+    const [ introTextTranslateX, setIntroTextTranslateX ] = useState(null);
     const [ driverImagePosition, setDriverImagePosition ] = useState(null);
     const [ driverImageTop, setDriverImageTop ] = useState(null);
     const [ driverImageLeft, setDriverImageLeft ] = useState(null);
@@ -29,17 +30,23 @@ export default useAnimation = (driverInfoLayout, driverIntroTextLayout, driverIm
     const halfDeviceWidth = deviceWidth / 2;
     const halfDeviceHeight = deviceHeight / 2;
     const transition = useTimingTransition(animationSequence, { duration: 600 });
+    const transition2 = useTimingTransition(animationSequence, { duration: 200 });
 
     useEffect(() => {
 
         // console.log(navigation.state.params.user);
-        setTimeout(() => {
+        const animationTimerOne = setTimeout(() => {
             setAnimationSequence(1);
         }, 4500);
 
-        setTimeout(() => {
+        const animationTimerTwo = setTimeout(() => {
             setAnimationSequence(2);
         }, 9000);
+
+        return () => {
+            clearTimeout(animationTimerOne);
+            clearTimeout(animationTimerTwo);
+        }
 
     }, []);
 
@@ -87,23 +94,23 @@ export default useAnimation = (driverInfoLayout, driverIntroTextLayout, driverIm
         });
         setIntroTextScale(introTextScale);
     
-        // const introTextPosition = interpolate(transition, {
-        //     inputRange: [0, 1, 2],
-        //     outputRange: [0, 0, 1]
-        // });
-        // setIntroTextPosition(introTextPosition);
-    
-        const introTextTop = interpolate(transition, {
+        const introTextOpacity = interpolate(transition2, {
             inputRange: [0, 1, 2],
-            outputRange: [0, 0, (((driverImgLayout * 0.6) / 2) - ((driverIntroTextLayout.height * 0.9) / 2)) * -1]
+            outputRange: [1, 1, 0]
         });
-        setIntroTextTop(introTextTop);
+        setIntroTextOpacity(introTextOpacity);
     
-        const introTextLeft = interpolate(transition, {
+        const lastSequenceTxtOpacity = interpolate(transition, {
             inputRange: [0, 1, 2],
-            outputRange: [0, 0, (halfDeviceWidth - 80 - (driverImgLayout * 0.6 * 1.5)) * -1]
+            outputRange: [0, 0, 1]
         });
-        setIntroTextLeft(introTextLeft);
+        setLastSequenceTxtOpacity(lastSequenceTxtOpacity);
+    
+        const introTextTranslateX = interpolate(transition, {
+            inputRange: [0, 1, 2],
+            outputRange: [0, 0, 0]
+        });
+        setIntroTextTranslateX(introTextTranslateX);
     
         const driverImagePosition = interpolate(transition, {
             inputRange: [0, 1, 2],
@@ -113,33 +120,33 @@ export default useAnimation = (driverInfoLayout, driverIntroTextLayout, driverIm
     
         const driverImageTop = interpolate(transition, {
             inputRange: [0, 1, 2],
-            outputRange: [0, 0, (halfDeviceHeight - ((driverImgLayout * 0.6) - (driverImgLayout / 2)) - 30) * -1]
+            outputRange: [0, 0, (halfDeviceHeight - hp('11.2%')) * -1]
         });
         setDriverImageTop(driverImageTop);
     
         const driverImageLeft = interpolate(transition, {
             inputRange: [0, 1, 2],
-            outputRange: [0, 0, (halfDeviceWidth - 80) * -1]
+            outputRange: [0, 0, (halfDeviceWidth - wp('6%') - wp('4%')) * -1]
         });
         setDriverImageLeft(driverImageLeft);
     
         const driverImageScale = interpolate(transition, {
             inputRange: [0, 1, 2],
-            outputRange: [1, 1, .6]
+            outputRange: [1, 1, .67]
         });
         setDriverImageScale(driverImageScale);
     
         const driverFavouritesX = interpolate(transition, {
             inputRange: [0, 1, 2],
-            outputRange: [0, 0, (halfDeviceWidth + (halfDeviceWidth - (halfDeviceWidth * 0.7)) - 80) * -1]
+            outputRange: [0, 0, (halfDeviceWidth + (halfDeviceWidth - (halfDeviceWidth * 0.7)) - wp('9.6%')) * -1]
         });
         setDriverFavouritesX(driverFavouritesX);
     
         const driverFavouritesY = interpolate(transition, {
             inputRange: [0, 1, 2],
-            outputRange: [0, 0, ((driverImgLayout * 0.6) - 
+            outputRange: [0, 0, ((driverImgLayout * 0.67) - 
                 (driverFavLayout.height - (driverFavLayout.height * 0.7)) +
-                ((driverImgLayout * 0.6) / 2) + 35
+                hp('18.6%')
             )]
         });
         setDriverFavouritesY(driverFavouritesY);
@@ -177,9 +184,9 @@ export default useAnimation = (driverInfoLayout, driverIntroTextLayout, driverIm
         logoOpacity, 
         opacity, 
         introTextScale, 
-        introTextPosition, 
-        introTextTop, 
-        introTextLeft, 
+        introTextOpacity, 
+        lastSequenceTxtOpacity, 
+        introTextTranslateX, 
         driverImagePosition, 
         driverImageTop, 
         driverImageLeft, 

@@ -11,6 +11,8 @@ const triviaReducer = (state, action) => {
             return { ...state, answeredQuiz: action.payload }
         case 'set_current_session':
             return { ...state, currentTriviaSession: action.payload }
+        case 'clear_history':
+            return { ...state, answeredQuiz: [], currentTriviaSession: null }
         case 'set_error':
             return { ...state, error: action.payload }
         default:
@@ -59,9 +61,18 @@ const saveAnsweredQuiz = (dispatch) => (answeredArr) => {
 }
 
 
+const clearQuizHistory = dispatch => () => {
+
+    // console.log('clear works', 2);
+    dispatch({
+        type: 'clear_history'
+    });
+}
+
+
 
 export const { Context, Provider } = createDataContext(
     triviaReducer,
-    { getTriviaQuiz, saveAnsweredQuiz, setCurrentTriviaSession },
+    { getTriviaQuiz, saveAnsweredQuiz, setCurrentTriviaSession, clearQuizHistory },
     { quizzes: [], answeredQuiz: [], error: null, currentTriviaSession: null }
 );

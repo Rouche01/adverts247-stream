@@ -15,6 +15,8 @@ const vodReducer = (state, action) => {
             return { ...state, entertainPlayedIdx: action.payload }
         case 'save_played_ads':
             return { ...state, adsPlayedIdx: action.payload }
+        case 'clear_history':
+            return { ...state, entertainPlayedIdx: [], adsPlayedIdx: [] }
         default:
             return state;
     }
@@ -90,9 +92,19 @@ const savePlayedAdsIdx = (dispatch) => (idxArray) => {
 }
 
 
+const clearPlaylistHistory = dispatch => () => {
+
+    // console.log('clear works', 3);
+    dispatch({
+        type: 'clear_history'
+    });
+
+}
+
+
 
 export const { Context, Provider } = createDataContext(
     vodReducer,
-    { getEntertainContent, getAdContent, savePlayedIdx, savePlayedAdsIdx },
+    { getEntertainContent, getAdContent, savePlayedIdx, savePlayedAdsIdx, clearPlaylistHistory },
     { mediaList: { videos: [], ads: [] }, entertainPlayedIdx: [], adsPlayedIdx: [], error: null }
 )

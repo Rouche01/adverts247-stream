@@ -7,14 +7,31 @@ import useNavigateAfterLogin from '../hooks/useNavigateAfterLogin';
 
 const PreAuthScreen = () => {
     
-    const { tryLocalSignin } = useContext(DriverContext);
-    const [ signinAndNavigate ] = useNavigateAfterLogin();
+    const { tryLocalSignin, signoutDriver } = useContext(DriverContext);
+    const [ signinAndNavigate, error ] = useNavigateAfterLogin();
 
     useEffect(() => {
 
         signinAndNavigate(tryLocalSignin);
 
     }, [])
+
+
+    useEffect(() => {
+        // console.log(error);
+        if(error) {
+            Alert.alert('Signin Error', 'There is an error with this user, please sign out and sign in again', [
+                {
+                    text: 'Sign Out',
+                    onPress: () => {
+                        clearError();
+                        signoutDriver();
+                    }
+                }
+            ])
+        }
+    }, [error]);
+
 
     return(
         <ImageBackground

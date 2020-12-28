@@ -4,11 +4,7 @@ import { Button } from 'react-native-elements';
 import { Context as DriverContext } from '../context/DriverContext';
 import useStreamingStatus from '../hooks/useStreamingStatus';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import { 
-    checkLocationPermission, 
-    checkBrightnessPermission,
-    checkSystemBrightnessPermission 
-} from '../utils/userPermissions';
+import { checkLocationPermission } from '../utils/userPermissions';
 
 
 const NoActivityScreen = ({ navigation }) => {
@@ -17,12 +13,8 @@ const NoActivityScreen = ({ navigation }) => {
     const [ streamStatus ] = useStreamingStatus();
 
     useEffect(() => {
-        console.log(streamStatus, 2);
-    }, [])
 
-    useEffect(() => {
-
-        console.log(streamStatus, 3);
+        // console.log(streamStatus, 3);
         if(streamStatus === "on") {
             navigation.navigate('Welcome');
         }
@@ -34,7 +26,7 @@ const NoActivityScreen = ({ navigation }) => {
 
             const locationPermission = await checkLocationPermission();
 
-            console.log(locationPermission);
+            // console.log(locationPermission);
             if (!locationPermission) {
                 navigation.navigate('PermissionGateway');
             }
@@ -75,7 +67,7 @@ const styles = StyleSheet.create({
     },
     logoStyle: {
         width: wp('35%'), 
-        height: hp('25%'),
+        height: hp('25%')
     }
 });
 

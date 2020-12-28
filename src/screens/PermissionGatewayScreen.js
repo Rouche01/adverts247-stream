@@ -3,11 +3,7 @@ import { StyleSheet, View, Text, StatusBar, ImageBackground, ScrollView } from '
 import { Button } from 'react-native-elements';
 import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons';
 import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
-import { 
-    getBrightnessPermission, 
-    getSystemBrightnessPermission, 
-    getLocationPermission 
-} from '../utils/userPermissions';
+import {  getLocationPermission } from '../utils/userPermissions';
 import { Context as DriverContext } from '../context/DriverContext';
 
 
@@ -30,7 +26,7 @@ const PermissionGatewayScreen = ({ navigation }) => {
     }, [locationPermit])
 
     const acceptPermissions = async() => {
-        console.log('accept');
+        // console.log('accept');
 
         let location, brightness, systemBrightness;
 
@@ -49,7 +45,7 @@ const PermissionGatewayScreen = ({ navigation }) => {
         //     setSystemBrightnessPermit(systemBrightness);
         // }
 
-        console.log(location, brightness, systemBrightness);
+        // console.log(location, brightness, systemBrightness);
     }
 
     return (

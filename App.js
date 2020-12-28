@@ -1,7 +1,9 @@
-import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { createAppContainer, createSwitchNavigator } from 'react-navigation';
 import { createStackNavigator } from 'react-navigation-stack';
+import * as Font from 'expo-font';
+import { useFonts } from '@use-expo/font';
+import { AppLoading } from 'expo';
 import SigninScreen from './src/screens/SigninScreen';
 import { Provider as DriverProvider } from './src/context/DriverContext';
 import { Provider as VodContentProvider } from './src/context/vodContentContext';
@@ -21,6 +23,13 @@ import TriviaResultScreen from './src/screens/TriviaResultScreen';
 import NoActivityScreen from './src/screens/NoActivityScreen';
 import PermissionGatewayScreen from './src/screens/PermissionGatewayScreen';
 
+
+const customFonts = {
+  Audiowide: require('./assets/fonts/Audiowide-Regular.ttf'),
+  RobotoRegular: require('./assets/fonts/Roboto-Regular.ttf'),
+  RobotoMedium: require('./assets/fonts/Roboto-Medium.ttf'),
+  RobotoBold: require('./assets/fonts/Roboto-Bold.ttf')
+}
 
 
 const navigator = createSwitchNavigator({
@@ -46,6 +55,13 @@ const App = createAppContainer(navigator);
 
 
 export default () => {
+
+  const [isLoaded] = useFonts(customFonts);
+  console.log(isLoaded);
+  if(!isLoaded) {
+    return <AppLoading />
+  }
+
   return(
     <DriverProvider>
       <VodContentProvider>
@@ -58,5 +74,6 @@ export default () => {
         </TriviaProvider>
       </VodContentProvider>
     </DriverProvider>
-  )
+  );
+
 }

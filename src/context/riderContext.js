@@ -11,6 +11,8 @@ const riderReducer = (state, action) => {
             return { ...state, rider: action.payload };
         case 'set_loading':
             return { ...state, loading: action.payload };
+        case 'clear_rider':
+            return { ...state, riderExist: false, rider: null }
         case 'set_error':
             return { ...state, error: action.payload };
         default:
@@ -63,7 +65,7 @@ const checkRider = (dispatch) => async(riderData, session) => {
 
         if(response.data.existStatus) {
 
-            console.log(response.data, 2);
+            // console.log(response.data, 2);
 
             const { fullname, phoneNumber } = riderData;
             const { _id } = response.data.rider;
@@ -78,11 +80,11 @@ const checkRider = (dispatch) => async(riderData, session) => {
 
         } else {
 
-            console.log(response.data, 2);
+            // console.log(response.data, 2);
             const { totalPoints, questions, answeredCorrectly } = session;
 
             const rider = await createRider(riderData);
-            console.log(rider);
+            // console.log(rider, debug);
             await createTriviaSession(dispatch)({ 
                 userId: rider._id, 
                 totalPoints, 
@@ -121,9 +123,18 @@ const createTriviaSession = (dispatch) => async(sessionData) => {
 }
 
 
+const clearRider = dispatch => () => {
+
+    // console.log('clear works', 1);
+    dispatch({
+        type: 'clear_rider'
+    })
+}
+
+
 
 export const { Context, Provider } = createDataContext(
     riderReducer,
-    { checkRider, updateRider, createTriviaSession },
+    { checkRider, updateRider, createTriviaSession, clearRider },
     { riderExist: false, error: null, loading: false, rider: null }
 )

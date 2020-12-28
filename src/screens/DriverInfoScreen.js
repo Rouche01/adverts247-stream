@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View, Image, ImageBackground, Text, StatusBar, Dimensions } from 'react-native';
 import { FontAwesome5, Ionicons, Fontisto } from '@expo/vector-icons';
 import Animated from 'react-native-reanimated';
 import useAnimation from '../hooks/useAnimation';
 import weatherIconDictionary from '../utils/weatherIconDictionary';
+import useStreamingStatus from '../hooks/useStreamingStatus';
+import useClearHistory from '../hooks/useClearHistory';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 const DEVICE_WIDTH = Dimensions.get('window').width;
 const DEVICE_HEIGHT = Dimensions.get('window').height;
@@ -17,19 +20,27 @@ const DriverInfoScreen = ({ navigation }) => {
     const [ area, setArea ] = useState('');
     const [ date, setDate ] = useState('');
     const [ weatherData, setWeatherData ] = useState(null);
+    const [ driverExtraInfo, setDriverExtraInfo ] = useState([]);
     const [ driverInfoLayout, setDriverInfoLayout ] = useState({ width: 0, height: 0 });
     const [ driverIntroTextLayout, setDriverIntroTextLayout] = useState({ width: 0, height: 0 });
     const [ driverImgLayout, setDriverImgLayout ] = useState(null);
     const [ driverFavLayout, setDriverFavLayout ] = useState({ width: 0, height: 0 });
+    const [ lastSeqeunceTxtLayout, setLastSequenceTxtLayout ] = useState({ width: 0, height: 0 });
     const [ infoTextWidth, setInfoTextWidth ] = useState(0);
 
-    const driverInfo = [
-        { infoKey: 'Favorite Meal', infoValue: 'Jollof Rice' },
-        { infoKey: 'Favorite Hobby', infoValue: 'Singing, Clubbing' },
-        { infoKey: 'Ask Me About', infoValue: 'Manchester United' },
-        { infoKey: 'Vacation Spot', infoValue: 'Paris, France' }
-    ]
 
+    const [ streamStatus ] = useStreamingStatus();
+    const [ clearHistory ] = useClearHistory();
+
+    useEffect(() => {
+
+        if(streamStatus === "off") {
+            // console.log(streamStatus);
+            clearHistory();
+            navigation.navigate('NoActivity');
+        }
+
+    }, [streamStatus]);
 
     const [
         translateX, 
@@ -39,8 +50,8 @@ const DriverInfoScreen = ({ navigation }) => {
         logoOpacity, 
         opacity, 
         introTextScale, 
-        introTextPosition, 
-        introTextTop, 
+        introTextOpacity, 
+        lastSequenceTxtOpacity, 
         introTextLeft, 
         driverImagePosition, 
         driverImageTop, 
@@ -58,9 +69,32 @@ const DriverInfoScreen = ({ navigation }) => {
     useEffect(() => {
 
         const { user, location, dateString, weatherData } = navigation.state.params;
-        const { name, profilePhoto } = user;
+        const { name, profilePhoto, extraInfo } = user;
+        
+        const extraArr = [];
+        for(const key in extraInfo) {
+            let infoUnit
+            if(key !== "_id") {
+
+                let infoKeyWordArr = key.split(/(?=[A-Z])/);
+                infoKeyWordArr = infoKeyWordArr.map(word => {
+                    return word[0].toUpperCase() + word.substr(1, word.length - 1)
+                });
+                let infoKey = infoKeyWordArr.join(' ');
+
+                infoUnit = { 
+                    infoKey,
+                    infoValue: extraInfo[key]
+                }
+                extraArr.push(infoUnit);
+            }
+        }
+        // console.log(extraArr);
+
         const { region, street } = location;
         const firstName = name.split(' ')[0];
+
+        setDriverExtraInfo(extraArr);
         setDriverFirstName(firstName);
         setDriverImage(profilePhoto);
         setCity(region);
@@ -70,30 +104,40 @@ const DriverInfoScreen = ({ navigation }) => {
 
     }, [])
 
+    const navigationTimer = useRef(null);
 
     useEffect(() => {
 
-        if(driverImage && driverFirstName) {
-            setTimeout(() => {
+        if(driverImage && driverFirstName && driverExtraInfo.length > 0) {
+
+            navigationTimer.current = setTimeout(() => {
                 navigation.navigate('AdPlayer');
             }, 12000)
         }
 
-    }, [driverImage, driverFirstName]);
+    }, [driverImage, driverFirstName, driverExtraInfo]);
+
+    useEffect(() => {
+
+        return () => {
+            clearTimeout(navigationTimer.current);
+        }
+        
+    }, []);
 
 
     const resolveWeatherIcon = () => {
         if(weatherIconDictionary[weatherData.icon].iconFamily === 'FontAwesome5') {
             return (
-                <FontAwesome5 name={weatherIconDictionary[weatherData.icon].icon} size={48} color="white" /> 
+                <FontAwesome5 name={weatherIconDictionary[weatherData.icon].icon} size={hp('14%')} color="white" /> 
             );
         } else if (weatherIconDictionary[weatherData.icon].iconFamily === 'Ionicons') {
             return (
-                <Ionicons name={weatherIconDictionary[weatherData.icon].icon} size={48} color="white" />
+                <Ionicons name={weatherIconDictionary[weatherData.icon].icon} size={hp('14%')} color="white" />
             );
         } else if(weatherIconDictionary[weatherData.icon].iconFamily === 'Fontisto') {
             return (
-                <Fontisto name={weatherIconDictionary[weatherData.icon].icon} size={48} color="white" />
+                <Fontisto name={weatherIconDictionary[weatherData.icon].icon} size={hp('14%')} color="white" />
             )
         }
     }
@@ -134,9 +178,10 @@ const DriverInfoScreen = ({ navigation }) => {
             >
                 <Animated.View
                     style={[styles.introText, {
-                        position: introTextPosition === 1 ? "absolute" : "relative",
-                        top: introTextTop,
-                        left: introTextLeft,
+                        opacity: introTextOpacity,
+                        position: driverImagePosition === 1 ? 'absolute' : 'relative',
+                        top: driverImageTop,
+                        left: driverImageLeft,
                     }]}
                     onLayout={ e => {
                         const layoutHeight = e.nativeEvent.layout.height;
@@ -144,18 +189,10 @@ const DriverInfoScreen = ({ navigation }) => {
                         setDriverIntroTextLayout({ width: layoutWidth, height: layoutHeight });
                     }}
                 >
-                    <Animated.Text style={[styles.minorText, {
-                        transform: [
-                            {scale: introTextScale}
-                        ]
-                    }]}>
+                    <Animated.Text style={[styles.minorText]}>
                         You are riding with
                     </Animated.Text>
-                    <Animated.Text style={[styles.majorText, {
-                        transform: [
-                            {scale: introTextScale}
-                        ]
-                    }]}>
+                    <Animated.Text style={[styles.majorText]}>
                         {driverFirstName}
                     </Animated.Text>
                 </Animated.View>
@@ -210,7 +247,7 @@ const DriverInfoScreen = ({ navigation }) => {
                     </Animated.Text>
                     <View style={styles.aboutBody}>
                         {
-                            driverInfo.map((info) => {
+                            driverExtraInfo.map((info) => {
                                 return (
                                     <Animated.View style={[styles.aboutInfo, {
                                         opacity
@@ -277,6 +314,23 @@ const DriverInfoScreen = ({ navigation }) => {
                     </View>
                 </Animated.View>
             </Animated.View>
+            <Animated.View
+                style={[{
+                    position: 'absolute',
+                    top: hp('19%') - lastSeqeunceTxtLayout.height / 2,
+                    left: wp('18%')
+                }, {
+                    opacity: lastSequenceTxtOpacity
+                }]}
+                onLayout={e => {
+                    const layoutWidth = e.nativeEvent.layout.width;
+                    const layoutHeight = e.nativeEvent.layout.height;
+                    setLastSequenceTxtLayout({ width: layoutWidth, height: layoutHeight });
+                }}
+            >
+                <Text style={styles.lastSequenceTxt}>You are riding with</Text>
+                <Text style={styles.lastSequenceDriverName}>{driverFirstName}</Text>
+            </Animated.View>
         </ImageBackground>
     )
 }
@@ -294,30 +348,38 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
     innerContainer: {
-        marginBottom: 20,
+        marginBottom: hp('4%'),
     },  
     minorText: {
-        fontSize: 16,
+        fontSize: hp('4%'),
         color: '#fff',
         textAlign: 'center'
     },
     majorText: {
-        fontSize: 28,
+        fontSize: hp('7%'),
         color: '#fff',
         fontWeight: 'bold',
         textAlign: 'center'
     },
     driverImage: {
-        width: 160,
-        height: 160,
-        borderRadius: 90,
-        marginTop: 20,
+        width: wp('18%'),
+        height: wp('18%'),
+        borderRadius: wp('9%'),
+        marginTop: hp('2.8%'),
+    },
+    lastSequenceDriverName: {
+        color: '#fff',
+        fontSize: hp('5%')
+    },
+    lastSequenceTxt: {
+        color: '#fff',
+        fontSize: hp('3%')
     },
     logoStyle: {
-        width: 160, 
-        height: 45,
+        width: wp('18%'), 
+        height: hp('9%'),
         position: 'absolute',
-        bottom: 40,
+        bottom: hp('10%'),
     },
     aboutDriver: {
         height: '100%',
@@ -325,27 +387,27 @@ const styles = StyleSheet.create({
         backgroundColor: '#F1040E',
         position:'absolute',
         top: 0,
-        paddingHorizontal: 20,
-        paddingVertical: 20
+        paddingHorizontal: wp('2.2%'),
+        paddingVertical: wp('2%')
     },
     aboutHeader: {
-        fontSize: 28,
+        fontSize: hp('7%'),
         color: '#fff',
         fontWeight: 'bold'
     },
     aboutBody: {
-        marginTop: 1
+        marginTop: hp('2.3%')
     },  
     aboutInfo: {
         flexDirection: 'row',
-        paddingVertical: 7,
+        paddingVertical: hp('1.7%'),
         alignItems: 'center'
     },
     iconWrapper: {
-        width: 45,
-        height: 45,
+        width: hp('12%'),
+        height: hp('12%'),
         backgroundColor: "#222222",
-        borderRadius: 22.5,
+        borderRadius: hp('6%'),
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -356,21 +418,21 @@ const styles = StyleSheet.create({
         elevation: 13
     },
     infoText: {
-        marginLeft: 20,
+        marginLeft: wp('2.2%'),
         borderColor: 'rgba(255,255,255,0.5)',
         borderBottomWidth: 1,
         flex: 1,
-        paddingBottom: 7
+        paddingBottom: hp('1.8%')
     },
     infoKey: {
         color: '#fff',
-        fontSize: 17
+        fontSize: hp('4.2%')
     },
     infoValue: {
         color: '#fff',
-        fontSize: 21,
+        fontSize: hp('5.2%'),
         fontWeight: 'bold',
-        marginLeft: 14
+        marginLeft: wp('2.4%')
     },
     weatherView: {
         paddingLeft: 22,
@@ -378,51 +440,51 @@ const styles = StyleSheet.create({
     },
     city: {
         color: '#fff',
-        fontSize: 20
+        fontSize: hp('5%')
     },
     area: {
         color: '#fff',
-        fontSize: 28,
+        fontSize: hp('7%'),
         fontWeight: 'bold'
     },
     dateTime: {
         color: '#fff',
-        fontSize: 16,
-        marginTop: 8
+        fontSize: hp('3.9%'),
+        marginTop: hp('0.5%')
     },
     weatherDisplay: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 15,
-        marginBottom: 20
+        marginTop: hp('2.6%'),
+        marginBottom: hp('3.5%')
     },
     temperature: {
-        fontSize: 36,
+        fontSize: hp('9%'),
         color: '#fff',
         fontWeight: 'bold',
-        marginLeft: 15
+        marginLeft: wp('2%')
     },
     weatherBox: {
-        height: 80,
-        width: 140,
+        height: hp('20%'),
+        width: wp('18%'),
         backgroundColor: '#272727',
         borderRadius: 5,
         // alignItems: 'center',
         justifyContent: 'center',
-        marginRight: 15,
-        paddingHorizontal: 20
+        marginRight: wp('2%'),
+        paddingHorizontal: wp('2%')
     },
     weatherUpdate: {
         flexDirection: 'row',
-        marginBottom: 15
+        marginBottom: hp('3.2%')
     },
     title: {
         color: '#fff',
-        fontSize: 10,
+        fontSize: hp('2.4%'),
     },
     value: {
         color: '#fff',
-        fontSize: 24,
+        fontSize: hp('5.6%'),
         fontWeight: 'bold'
     }
 });

@@ -2,6 +2,9 @@ import React, { useContext, useEffect, useState } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Context as TriviaContext } from '../context/triviaContext';
+import useStreamingStatus from '../hooks/useStreamingStatus';
+import useClearHistory from '../hooks/useClearHistory';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 
 const TriviaResultScreen = ({ navigation }) => {
@@ -11,20 +14,39 @@ const TriviaResultScreen = ({ navigation }) => {
     const [ questionNumber, setQuestionNumber ] = useState();
     const [ answeredCorrectly, setAnsweredCorrectly ] = useState();
 
+    const [ streamStatus ] = useStreamingStatus();
+    const [ clearHistory ] = useClearHistory();
+
     useEffect(() => {
 
-        console.log(currentTriviaSession);
-        setPoint(currentTriviaSession.totalPoints);
-        setQuestionNumber(currentTriviaSession.questions);
-        setAnsweredCorrectly(currentTriviaSession.answeredCorrectly);
+        if(streamStatus === "off") {
+            // console.log(streamStatus);
+            clearHistory();
+            navigation.navigate('NoActivity');
+        }
+
+    }, [streamStatus]);
+
+    useEffect(() => {
+
+        if(currentTriviaSession) {
+            // console.log(currentTriviaSession);
+            setPoint(currentTriviaSession.totalPoints);
+            setQuestionNumber(currentTriviaSession.questions);
+            setAnsweredCorrectly(currentTriviaSession.answeredCorrectly);
+        }
 
     }, [currentTriviaSession]);
 
     useEffect(() => {
 
-        setTimeout(() => {
+        const navigationTimer = setTimeout(() => {
             navigation.navigate('AdPlayer');
-        }, 2000)
+        }, 10000);
+
+        return () => {
+            clearTimeout(navigationTimer);
+        }
 
     }, [])
 
@@ -53,33 +75,34 @@ const styles = StyleSheet.create({
     result: { 
         color: '#fff', 
         textAlign: 'center', 
-        fontSize: 36, 
+        fontSize: hp('8.5%'), 
         fontWeight: 'bold', 
         opacity: 0.7 
     },
     points: {
         backgroundColor: 'grey',
         textAlign: 'center',
-        width: 120,
-        fontSize: 17,
+        width: wp('14%'),
+        fontSize: hp('4%'),
         alignSelf: 'center',
-        marginTop: 5,
-        paddingVertical: 4,
+        marginTop: hp('1%'),
+        paddingVertical: hp('1.2%'),
         borderRadius: 5
     },  
     resultBox: {
         width: '60%',
         backgroundColor: '#1D1B1B',
-        paddingHorizontal: 30,
-        paddingVertical: 28,
-        borderRadius: 20
+        paddingHorizontal: wp('3.5%'),
+        paddingVertical: hp('6.7%'),
+        borderRadius: 20,
+        elevation: 10
     },
     resultText: {
         color: '#fff',
-        fontSize: 18,
+        fontSize: hp('4.4%'),
         // fontWeight: 'bold',
         textAlign: 'center',
-        marginTop: 10
+        marginTop: hp('2.5%')
     },
     iconStyle: {
         textAlign: 'center'

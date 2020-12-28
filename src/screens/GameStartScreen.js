@@ -1,16 +1,35 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, View, ImageBackground, Text, Image } from 'react-native';
+import { StyleSheet, View, ImageBackground, Text, Image, StatusBar } from 'react-native';
 import { Entypo } from '@expo/vector-icons';
-
+import useStreamingStatus from '../hooks/useStreamingStatus';
+import useClearHistory from '../hooks/useClearHistory';
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen';
 
 
 const GameStartScreen = ({ navigation }) => {
 
+    const [ streamStatus ] = useStreamingStatus();
+    const [ clearHistory ] = useClearHistory();
+
     useEffect(() => {
 
-        setTimeout(() => {
+        if(streamStatus === "off") {
+            // console.log(streamStatus);
+            clearHistory();
+            navigation.navigate('NoActivity');
+        }
+
+    }, [streamStatus]);
+
+    useEffect(() => {
+
+        let navigationTimer = setTimeout(() => {
             navigation.navigate('GameIntro');
         }, 4000)
+
+        return () => {
+            clearTimeout(navigationTimer);
+        }
 
     }, [])
 
@@ -19,8 +38,13 @@ const GameStartScreen = ({ navigation }) => {
             source={require('../../assets/welcome-background.png')}
             style={styles.backgroundStyle}
         >
+            <StatusBar 
+                barStyle="light-content"
+                backgroundColor="rgba(0,0,0,0.2)"
+                translucent={true}
+            />
             <View style={styles.mainInfo}>
-                <Entypo name="game-controller" size={90} color="#F1040E" />
+                <Entypo name="game-controller" size={hp('20%')} color="#F1040E" />
                 <Text style={styles.mainText}>Let's Play</Text>
             </View>
             <Image 
@@ -41,19 +65,19 @@ const styles = StyleSheet.create({
     },
     mainInfo: {
         alignItems: 'center',
-        marginTop: -40
+        marginTop: -1 * hp('9%')
     },
     mainText: {
-        fontSize: 50,
+        fontSize: hp('12%'),
         color: '#fff',
         fontWeight: 'bold'
     },
     logoStyle: {
-        width: 160, 
-        height: 45,
+        width: wp('18%'), 
+        height: hp('9%'),
         position: 'absolute',
-        bottom: 40,
-        left: 50
+        bottom: hp('10%'),
+        left: wp('6%')
     }
 })
 

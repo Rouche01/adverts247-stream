@@ -15,7 +15,9 @@ const driverReducer = (state, action) => {
         case 'set_errors':
             return { ...state, error: action.payload };
         case 'signout':
-            return { ...state, token: null, user: null, error: '' }
+            return { ...state, token: null, user: null, error: '' };
+        case 'clear_error':
+            return { ...state, error: action.payload };
         default:
             return state;
     }
@@ -25,7 +27,7 @@ const driverReducer = (state, action) => {
 const signinDriver = (dispatch) => async(data, callback) => {
 
     try {
-        console.log(data);
+        // console.log(data);
         dispatch({ type: 'set_loading', payload: true });
 
         const response = await adverts247Api.post('/drivers/signin', data);
@@ -42,11 +44,9 @@ const signinDriver = (dispatch) => async(data, callback) => {
         }
         dispatch({ type: 'set_loading', payload: false });
 
-        // customNavigate('Welcome');
-
     } catch(error) {
 
-        console.log(error);
+        // console.log(error);
 
         dispatch({ type: 'set_loading', payload: false });
 
@@ -69,7 +69,6 @@ const tryLocalSignin = (dispatch) => async(callback) => {
                 type: 'signin',
                 payload: token
             })
-            // customNavigate('Welcome');
 
             if(callback) {
                 callback();
@@ -119,8 +118,16 @@ const signoutDriver = dispatch => async() => {
 }
 
 
+const clearError = dispatch => async() => {
+    dispatch({
+        type: 'clear_error',
+        payload: null
+    });
+}
+
+
 export const { Context, Provider } = createDataContext(
     driverReducer,
-    { signinDriver, tryLocalSignin, getUser, signoutDriver },
+    { signinDriver, tryLocalSignin, getUser, signoutDriver, clearError },
     { token: null, loading: false, error: '', user: null }
 )
