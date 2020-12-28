@@ -20,7 +20,7 @@ export default class VideoPlayer extends React.Component {
     this.playbackInstance = null;
     this._isMounted = false;
     this.state = {
-      index: 2,
+      index: 0,
       createdPlaylist: [],
       playlist: [],
       showCountdown: false,
