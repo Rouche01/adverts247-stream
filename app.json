@@ -3,6 +3,7 @@
     "name": "Adverts247 Stream App",
     "slug": "adverts247-stream",
     "version": "1.0.0",
+    "sdkVersion": "40.0.0",
     "orientation": "landscape",
     "icon": "./assets/icon.png",
     "splash": {
@@ -13,9 +14,7 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.adverts247.stream",
