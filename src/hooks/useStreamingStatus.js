@@ -14,7 +14,7 @@ export default () => {
 
     const checkForStreamStatus = async() => {
         // console.log('works');
-        await getStreamingStatus(user._id, source.token);
+        await getStreamingStatus(user.id, source.token);
     }
 
     useEffect(() => {

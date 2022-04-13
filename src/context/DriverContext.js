@@ -110,6 +110,8 @@ const getUser = (dispatch) => async() => {
 
 
 const signoutDriver = dispatch => async() => {
+    const token = await AsyncStorage.getItem('token');
+    console.log('works', token)
     await AsyncStorage.removeItem('token');
     dispatch({
         type: 'signout'
